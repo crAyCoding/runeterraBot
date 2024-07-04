@@ -142,7 +142,8 @@ def sort_participants(participants: set):
             user_result.append(user[1])
         user_result.append('')
 
-    result = '\n'
+    result = ''
+    result += ' \n'
     for users in user_result:
         result += f'{users}\n'
 
@@ -171,10 +172,7 @@ async def end_game(ctx):
             participants_result = sort_participants(participants)
 
             await ctx.send(f'@everyone 내전 모집이 마감되었습니다. 모두 모여주세요.')
-            send_result = await ctx.send(participants_result)
-
-            await asyncio.sleep(15)
-            await send_result.delete()
+            await ctx.send(participants_result)
         else:
             await ctx.send('의도치 않은 오류가 발생했습니다.')
         participants = set()
