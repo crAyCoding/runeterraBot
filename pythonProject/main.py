@@ -170,26 +170,29 @@ async def start_game(ctx, *, message='모바시'):
 async def end_game(ctx):
     global recording, message_log, recording_channel
     if recording == True:
-        recording = False
-        participants = set()
+        if recording_channel == ctx.channel:
+            recording = False
+            participants = set()
 
-        for log in message_log:
-            participants.add(log['author'])
+            for log in message_log:
+                participants.add(log['author'])
 
-        if participants:
-            participants_result = sort_participants(participants)
+            if participants:
+                participants_result = sort_participants(participants)
 
-            await ctx.send(f'@everyone 내전 모집이 마감되었습니다. 모두 모여주세요.')
-            await ctx.send(participants_result)
+                await ctx.send(f'@everyone 내전 모집이 마감되었습니다. 모두 모여주세요.')
+                await ctx.send(participants_result)
+            else:
+                await ctx.send('의도치 않은 오류가 발생했습니다.')
         else:
-            await ctx.send('의도치 않은 오류가 발생했습니다.')
+            await ctx.send('다른 채널에서 내전이 진행 중입니다.')
     else:
         await ctx.send('아직 내전이 실행되지 않았습니다. !내전으로 내전을 열어주세요.')
 
 @bot.command(name='쫑')
 async def jjong_game(ctx):
     global recording, message_log, recording_channel
-    if recording == True:
+    if recording == True and recording_channel == ctx.channel:
         recording = False
         message_log = []
         recording_channel = None
