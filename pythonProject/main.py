@@ -15,6 +15,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 recording = False
+recording_channel = None
 participants = set()
 
 def sort_participants(participants: set):
@@ -156,9 +157,10 @@ async def on_ready():
 
 @bot.command(name='내전')
 async def start_game(ctx, *, message='모바시'):
-    global recording, participants
+    global recording, participants, recording_channel
     if recording == False:
         recording = True
+        recording_channel = ctx.channel
         participants = set()
         await ctx.send(f'@everyone 내전 {message}')
     else:
@@ -166,7 +168,7 @@ async def start_game(ctx, *, message='모바시'):
 
 @bot.command(name='마감')
 async def end_game(ctx):
-    global recording, participants
+    global recording, participants, recording_channel
     if recording == True:
         recording = False
         if participants:
@@ -177,15 +179,17 @@ async def end_game(ctx):
         else:
             await ctx.send('의도치 않은 오류가 발생했습니다.')
         participants = set()
+        recording_channel = None
     else:
         await ctx.send('아직 내전이 실행되지 않았습니다. !내전으로 내전을 열어주세요.')
 
 @bot.command(name='쫑')
 async def jjong_game(ctx):
-    global recording,participants
+    global recording, participants, recording_channel
     if recording == True:
         recording = False
         participants = set()
+        recording_channel = None
         await ctx.send(f'@everyone 쫑')
 
 
@@ -196,10 +200,16 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if recording:
+    if recording and message.channel == recording_channel:
         participants.add(message.author.display_name)
 
     await bot.process_commands(message)
+
+@bot.command(name='마술사봇긴급종료')
+@commands.has_permissions(administrator=True)
+async def shutdown(ctx):
+    await ctx.send("긴급탈출")
+    await bot.close()
 
 def main() -> None:
     bot.run(token=TOKEN)
