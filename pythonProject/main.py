@@ -143,9 +143,10 @@ def sort_participants(participants: set):
         user_result.append('')
 
     result = ''
-    result += ' \n'
+    result += f'=========================================\n\n'
     for users in user_result:
         result += f'{users}\n'
+    result += f'=========================================\n'
 
     return result
 
