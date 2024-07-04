@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 recording = False
 recording_channel = None
-participants = set()
+message_log = []
 
 def sort_participants(participants: set):
     challenger_users = list()
@@ -157,20 +157,25 @@ async def on_ready():
 
 @bot.command(name='내전')
 async def start_game(ctx, *, message='모바시'):
-    global recording, participants, recording_channel
+    global recording, message_log, recording_channel
     if recording == False:
         recording = True
         recording_channel = ctx.channel
-        participants = set()
+        message_log = []
         await ctx.send(f'@everyone 내전 {message}')
     else:
         await ctx.send('이미 내전이 열려 있습니다. 기존의 내전을 마감하고 진행해주세요.')
 
 @bot.command(name='마감')
 async def end_game(ctx):
-    global recording, participants, recording_channel
+    global recording, message_log, recording_channel
     if recording == True:
         recording = False
+        participants = set()
+
+        for log in message_log:
+            participants.add(log['author'])
+
         if participants:
             participants_result = sort_participants(participants)
 
@@ -178,17 +183,15 @@ async def end_game(ctx):
             await ctx.send(participants_result)
         else:
             await ctx.send('의도치 않은 오류가 발생했습니다.')
-        participants = set()
-        recording_channel = None
     else:
         await ctx.send('아직 내전이 실행되지 않았습니다. !내전으로 내전을 열어주세요.')
 
 @bot.command(name='쫑')
 async def jjong_game(ctx):
-    global recording, participants, recording_channel
+    global recording, message_log, recording_channel
     if recording == True:
         recording = False
-        participants = set()
+        message_log = []
         recording_channel = None
         await ctx.send(f'@everyone 쫑')
 
@@ -201,9 +204,29 @@ async def on_message(message):
         return
 
     if recording and message.channel == recording_channel:
-        participants.add(message.author.display_name)
+        message_log.append({
+            'id': message.id,
+            'author': message.author.display_name,
+            'content': message.content,
+            'timestamp': message.created_at
+        })
 
     await bot.process_commands(message)
+
+@bot.command(name='권기현')
+async def ddolddol(ctx):
+    await ctx.send(f'날쌔지 않음')
+
+@bot.command(name='절구')
+async def ddolddol(ctx):
+    await ctx.send(f'절구통')
+
+@bot.event
+async def on_message_delete(message):
+    global recording, recording_channel, message_log
+
+    if recording and message.channel == recording_channel:
+        message_log = [log for log in message_log if log['id'] != message.id]
 
 @bot.command(name='마술사봇긴급종료')
 @commands.has_permissions(administrator=True)
