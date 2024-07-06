@@ -2,7 +2,9 @@ import asyncio
 from typing import Final
 import os
 
+import discord
 from discord import Intents, Client, Message
+from discord.ui import Button, View
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -166,6 +168,223 @@ async def start_game(ctx, *, message='모바시'):
     else:
         await ctx.send('이미 내전이 열려 있습니다. 기존의 내전을 마감하고 진행해주세요.')
 
+@bot.command(name='20인내전')
+async def start_twenty_game(ctx, *, message='모바시'):
+    line = ['탑','정글','미드','원딜','서폿']
+    line_person = [0,0,0,0,0]
+    user_info = [[],[],[],[],[]]
+
+    class MyView(View):
+        def __init__(self):
+            super().__init__()
+
+            top_button = Button(label=f'탑 : {line_person[0]}', style = discord.ButtonStyle.gray)
+            top_button.callback = self.top_callback(top_button)
+
+            jg_button = Button(label=f'정글 : {line_person[1]}', style=discord.ButtonStyle.gray)
+            jg_button.callback = self.jg_callback(jg_button)
+
+            mid_button = Button(label=f'미드 : {line_person[2]}', style=discord.ButtonStyle.gray)
+            mid_button.callback = self.mid_callback(mid_button)
+
+            ad_button = Button(label=f'원딜 : {line_person[3]}', style=discord.ButtonStyle.gray)
+            ad_button.callback = self.ad_callback(ad_button)
+
+            sup_button = Button(label=f'서폿 : {line_person[4]}', style=discord.ButtonStyle.gray)
+            sup_button.callback = self.sup_callback(sup_button)
+
+            self.add_item(top_button)
+            self.add_item(jg_button)
+            self.add_item(mid_button)
+            self.add_item(ad_button)
+            self.add_item(sup_button)
+
+
+        def top_callback(self, button):
+            line_number = 0
+            line_name = line[line_number]
+            async def callback(interaction: discord.Interaction):
+                username = interaction.user.display_name
+                flag = True
+                for i in range(len(user_info[line_number])):
+                    if user_info[line_number][i][0] == username:
+                        line_person[line_number] -= 1
+                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
+                        await original_message.delete()
+                        del user_info[line_number][i]
+                        flag = False
+
+                for i in range(len(user_info)):
+                    if i == line_number:
+                        continue
+                    for j in range(len(user_info[i])):
+                        if user_info[i][j][0] == username:
+                            flag = False
+
+                if flag:
+                    line_person[line_number] += 1
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username,message.id))
+
+
+                button.label = f"{line_name} : {line_person[line_number]}"
+                if(line_person[line_number] == 4):
+                    button.style = discord.ButtonStyle.red
+                else:
+                    button.style = discord.ButtonStyle.gray
+
+                await interaction.response.edit_message(view=self)
+
+            return callback
+        def jg_callback(self, button):
+            line_number = 1
+            line_name = line[line_number]
+
+            async def callback(interaction: discord.Interaction):
+                username = interaction.user.display_name
+                flag = True
+                for i in range(len(user_info[line_number])):
+                    if user_info[line_number][i][0] == username:
+                        line_person[line_number] -= 1
+                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
+                        await original_message.delete()
+                        del user_info[line_number][i]
+                        flag = False
+
+                for i in range(len(user_info)):
+                    if i == line_number:
+                        continue
+                    for j in range(len(user_info[i])):
+                        if user_info[i][j][0] == username:
+                            flag = False
+
+                if flag:
+                    line_person[line_number] += 1
+                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
+
+                button.label = f"{line_name} : {line_person[line_number]}"
+                if (line_person[line_number] == 4):
+                    button.style = discord.ButtonStyle.red
+                else:
+                    button.style = discord.ButtonStyle.gray
+
+                await interaction.response.edit_message(view=self)
+
+            return callback
+        def mid_callback(self, button):
+            line_number = 2
+            line_name = line[line_number]
+
+            async def callback(interaction: discord.Interaction):
+                username = interaction.user.display_name
+                flag = True
+                for i in range(len(user_info[line_number])):
+                    if user_info[line_number][i][0] == username:
+                        line_person[line_number] -= 1
+                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
+                        await original_message.delete()
+                        del user_info[line_number][i]
+                        flag = False
+
+                for i in range(len(user_info)):
+                    if i == line_number:
+                        continue
+                    for j in range(len(user_info[i])):
+                        if user_info[i][j][0] == username:
+                            flag = False
+
+                if flag:
+                    line_person[line_number] += 1
+                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
+
+                button.label = f"{line_name} : {line_person[line_number]}"
+                if (line_person[line_number] == 4):
+                    button.style = discord.ButtonStyle.red
+                else:
+                    button.style = discord.ButtonStyle.gray
+
+                await interaction.response.edit_message(view=self)
+
+            return callback
+        def ad_callback(self, button):
+            line_number = 3
+            line_name = line[line_number]
+
+            async def callback(interaction: discord.Interaction):
+                username = interaction.user.display_name
+                flag = True
+                for i in range(len(user_info[line_number])):
+                    if user_info[line_number][i][0] == username:
+                        line_person[line_number] -= 1
+                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
+                        await original_message.delete()
+                        del user_info[line_number][i]
+                        flag = False
+
+                for i in range(len(user_info)):
+                    if i == line_number:
+                        continue
+                    for j in range(len(user_info[i])):
+                        if user_info[i][j][0] == username:
+                            flag = False
+
+                if flag:
+                    line_person[line_number] += 1
+                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
+
+                button.label = f"{line_name} : {line_person[line_number]}"
+                if (line_person[line_number] == 4):
+                    button.style = discord.ButtonStyle.red
+                else:
+                    button.style = discord.ButtonStyle.gray
+
+                await interaction.response.edit_message(view=self)
+
+            return callback
+        def sup_callback(self, button):
+            line_number = 4
+            line_name = line[line_number]
+
+            async def callback(interaction: discord.Interaction):
+                username = interaction.user.display_name
+                flag = True
+                for i in range(len(user_info[line_number])):
+                    if user_info[line_number][i][0] == username:
+                        line_person[line_number] -= 1
+                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
+                        await original_message.delete()
+                        del user_info[line_number][i]
+                        flag = False
+
+                for i in range(len(user_info)):
+                    if i == line_number:
+                        continue
+                    for j in range(len(user_info[i])):
+                        if user_info[i][j][0] == username:
+                            flag = False
+
+                if flag:
+                    line_person[line_number] += 1
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
+
+                button.label = f"{line_name} : {line_person[line_number]}"
+                if (line_person[line_number] == 4):
+                    button.style = discord.ButtonStyle.red
+                else:
+                    button.style = discord.ButtonStyle.gray
+
+                await interaction.response.edit_message(view=self)
+
+            return callback
+
+    view = MyView()
+
+    await ctx.send(embed = discord.Embed(title='개발자에게 후원이 필요해요'),view=view)
+
 @bot.command(name='마감')
 async def end_game(ctx):
     global recording, message_log, recording_channel
@@ -221,8 +440,32 @@ async def ddolddol(ctx):
     await ctx.send(f'날쌔지 않음')
 
 @bot.command(name='절구')
-async def ddolddol(ctx):
+async def jeolgu(ctx):
     await ctx.send(f'절구통')
+
+@bot.command(name='배리나')
+async def baerina(ctx):
+    await ctx.send(f'150KG')
+
+@bot.command(name='제우스')
+async def zeus(ctx):
+    await ctx.send(f'점수먹는 하마')
+
+@bot.command(name='뭘봐')
+async def meolbwa(ctx):
+    await ctx.send(f'마술사의 샌드백')
+
+@bot.command(name='제드에코')
+async def zeddekko(ctx):
+    await ctx.send(f'에메딱')
+
+@bot.command(name='준혁')
+async def yayo(ctx):
+    await ctx.send(f'탑징징')
+
+@bot.command(name='규진')
+async def yayo(ctx):
+    await ctx.send(f'0.1 정해인')
 
 @bot.event
 async def on_message_delete(message):
