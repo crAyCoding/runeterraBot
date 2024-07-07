@@ -20,7 +20,6 @@ recording = False
 recording_channel = None
 message_log = []
 
-line_person = [0, 0, 0, 0, 0]
 user_info = [[], [], [], [], []]
 current_view = None
 view_message = None
@@ -159,6 +158,11 @@ def sort_participants(participants: set):
     return result
 
 def sort_twenty_members(participants: list):
+
+    users = []
+    for participant in participants:
+        users.append(participant[0])
+
     challenger_users = list()
     grandmaster_users = list()
     master_users = list()
@@ -171,7 +175,7 @@ def sort_twenty_members(participants: list):
     iron_users = list()
     unranked_users = list()
 
-    for user in participants:
+    for user in users:
         splitted_user_profile = user.split('/')
         user_tier_non_strip = splitted_user_profile[1]
         user_tier = user_tier_non_strip.strip()
@@ -349,8 +353,10 @@ def get_team_head_number():
     for i in range(len(user_info)):
         max_score = 0
         min_score = 9999999
-        for user_message_info in user_info[i]:
-            user = user_message_info[0]
+        for index in range(min(4,len(user_info[i]))):
+            users = user_info[i]
+
+            user = users[index][0]
             user_score = get_user_tier_score(user)
 
             if user_score > max_score:
@@ -371,14 +377,17 @@ def get_team_head_lineup(line_number: int):
     global user_info
 
     result = ''
+    result += f'팀장\n'
     result += f'=========================================\n\n'
 
-    user_result = user_info[line_number]
+    user_for_sort = user_info[line_number][0:4]
 
-    for i in range(len(user_result)):
+    users = sort_twenty_members(user_for_sort)
+
+    for i in range(min(4,len(user_info[line_number]))):
         result += f'{i+1}팀\n'
-        user_score = get_user_tier_score(user_result[i][0])
-        result += f'{user_result[i][0]} : {user_score}\n\n'
+        user_score = get_user_tier_score(users[i])
+        result += f'{users[i]} : {user_score}\n\n'
 
     result += f'========================================='
 
@@ -392,19 +401,24 @@ def get_twenty_user_lineup(head_line_number: int):
     index = 1
 
     result = ''
+    result += f'팀원\n'
     result += f'=========================================\n\n'
 
     for line_number in range(len(user_info)):
         if line_number == head_line_number:
             continue
 
-        user_result = user_info[line_number]
+        user_for_sort = user_info[line_number][0:4]
+
+        users = sort_twenty_members(user_for_sort)
 
         result += f'{line[line_number]}\n'
 
-        for i in range(len(user_result)):
-            result += f'{index}. {user_result[i][0]}\n'
+        for i in range(len(users)):
+            result += f'{index}. {users[i]}\n'
             index += 1
+
+        result += f'    \n'
 
     result += f'========================================='
 
@@ -428,26 +442,26 @@ async def start_game(ctx, *, message='모바시'):
 
 @bot.command(name='20인내전')
 async def start_twenty_game(ctx, *, message='모바시'):
-    global line_person, user_info, current_view, view_message
+    global user_info, current_view, view_message
     line = ['탑','정글','미드','원딜','서폿']
 
     class MyView(View):
         def __init__(self):
             super().__init__()
 
-            top_button = Button(label=f'탑 : {line_person[0]}', style = discord.ButtonStyle.gray)
+            top_button = Button(label=f'탑 : 0', style = discord.ButtonStyle.gray)
             top_button.callback = self.top_callback(top_button)
 
-            jg_button = Button(label=f'정글 : {line_person[1]}', style=discord.ButtonStyle.gray)
+            jg_button = Button(label=f'정글 : 0', style=discord.ButtonStyle.gray)
             jg_button.callback = self.jg_callback(jg_button)
 
-            mid_button = Button(label=f'미드 : {line_person[2]}', style=discord.ButtonStyle.gray)
+            mid_button = Button(label=f'미드 : 0', style=discord.ButtonStyle.gray)
             mid_button.callback = self.mid_callback(mid_button)
 
-            ad_button = Button(label=f'원딜 : {line_person[3]}', style=discord.ButtonStyle.gray)
+            ad_button = Button(label=f'원딜 : 0', style=discord.ButtonStyle.gray)
             ad_button.callback = self.ad_callback(ad_button)
 
-            sup_button = Button(label=f'서폿 : {line_person[4]}', style=discord.ButtonStyle.gray)
+            sup_button = Button(label=f'서폿 : 0', style=discord.ButtonStyle.gray)
             sup_button.callback = self.sup_callback(sup_button)
 
             self.add_item(top_button)
@@ -463,7 +477,6 @@ async def start_twenty_game(ctx, *, message='모바시'):
                 flag = True
                 for i in range(len(user_info[line_number])):
                     if user_info[line_number][i][0] == username:
-                        line_person[line_number] -= 1
                         original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
                         await original_message.delete()
                         del user_info[line_number][i]
@@ -477,16 +490,12 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    line_person[line_number] += 1
-                    if line_person[line_number] >= 4:
-                        await ctx.send(f'{username} 님이 {line_name}으로 대기합니다. (대기는 아직 개발 중입니다...) ')
-                    else:
-                        message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
-                        user_info[line_number].append((username,message.id))
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
 
 
-                button.label = f"{line_name} : {line_person[line_number]}"
-                if(line_person[line_number] >= 4):
+                button.label = f"{line_name} : {len(user_info[line_number])}"
+                if(len(user_info[line_number]) >= 4):
                     button.style = discord.ButtonStyle.red
                 else:
                     button.style = discord.ButtonStyle.gray
@@ -503,7 +512,6 @@ async def start_twenty_game(ctx, *, message='모바시'):
                 flag = True
                 for i in range(len(user_info[line_number])):
                     if user_info[line_number][i][0] == username:
-                        line_person[line_number] -= 1
                         original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
                         await original_message.delete()
                         del user_info[line_number][i]
@@ -517,15 +525,12 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    line_person[line_number] += 1
-                    if line_person[line_number] >= 4:
-                        await ctx.send(f'{username} 님이 {line_name}으로 대기합니다. (대기는 아직 개발 중입니다...) ')
-                    else:
-                        message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
-                        user_info[line_number].append((username, message.id))
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
 
-                button.label = f"{line_name} : {line_person[line_number]}"
-                if (line_person[line_number] >= 4):
+
+                button.label = f"{line_name} : {len(user_info[line_number])}"
+                if (len(user_info[line_number]) >= 4):
                     button.style = discord.ButtonStyle.red
                 else:
                     button.style = discord.ButtonStyle.gray
@@ -542,7 +547,6 @@ async def start_twenty_game(ctx, *, message='모바시'):
                 flag = True
                 for i in range(len(user_info[line_number])):
                     if user_info[line_number][i][0] == username:
-                        line_person[line_number] -= 1
                         original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
                         await original_message.delete()
                         del user_info[line_number][i]
@@ -556,15 +560,12 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    line_person[line_number] += 1
-                    if line_person[line_number] >= 4:
-                        await ctx.send(f'{username} 님이 {line_name}으로 대기합니다. (대기는 아직 개발 중입니다...) ')
-                    else:
-                        message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
-                        user_info[line_number].append((username, message.id))
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
 
-                button.label = f"{line_name} : {line_person[line_number]}"
-                if (line_person[line_number] >= 4):
+
+                button.label = f"{line_name} : {len(user_info[line_number])}"
+                if (len(user_info[line_number]) >= 4):
                     button.style = discord.ButtonStyle.red
                 else:
                     button.style = discord.ButtonStyle.gray
@@ -581,7 +582,6 @@ async def start_twenty_game(ctx, *, message='모바시'):
                 flag = True
                 for i in range(len(user_info[line_number])):
                     if user_info[line_number][i][0] == username:
-                        line_person[line_number] -= 1
                         original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
                         await original_message.delete()
                         del user_info[line_number][i]
@@ -595,15 +595,12 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    line_person[line_number] += 1
-                    if line_person[line_number] >= 4:
-                        await ctx.send(f'{username} 님이 {line_name}으로 대기합니다. (대기는 아직 개발 중입니다...) ')
-                    else:
-                        message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
-                        user_info[line_number].append((username, message.id))
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
 
-                button.label = f"{line_name} : {line_person[line_number]}"
-                if (line_person[line_number] >= 4):
+
+                button.label = f"{line_name} : {len(user_info[line_number])}"
+                if (len(user_info[line_number]) >= 4):
                     button.style = discord.ButtonStyle.red
                 else:
                     button.style = discord.ButtonStyle.gray
@@ -620,7 +617,6 @@ async def start_twenty_game(ctx, *, message='모바시'):
                 flag = True
                 for i in range(len(user_info[line_number])):
                     if user_info[line_number][i][0] == username:
-                        line_person[line_number] -= 1
                         original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
                         await original_message.delete()
                         del user_info[line_number][i]
@@ -634,15 +630,11 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    line_person[line_number] += 1
-                    if line_person[line_number] >= 4:
-                        await ctx.send(f'{username} 님이 {line_name}으로 대기합니다. (대기는 아직 개발 중입니다...) ')
-                    else:
-                        message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
-                        user_info[line_number].append((username, message.id))
+                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    user_info[line_number].append((username, message.id))
 
-                button.label = f"{line_name} : {line_person[line_number]}"
-                if (line_person[line_number] >= 4):
+                button.label = f"{line_name} : {len(user_info[line_number])}"
+                if (len(user_info[line_number]) >= 4):
                     button.style = discord.ButtonStyle.red
                 else:
                     button.style = discord.ButtonStyle.gray
@@ -658,24 +650,21 @@ async def start_twenty_game(ctx, *, message='모바시'):
 
 @bot.command(name='20인내전마감')
 async def twenty_end_game(ctx):
-    global user_info, line_person, current_view, view_message
+    global user_info, current_view, view_message
 
     if current_view:
         current_view.clear_items()
         await view_message.edit(view=current_view)
-
-    people = line_person[0] + line_person[1] + line_person[2] + line_person[3] + line_person[4]
 
     team_head_line_number = get_team_head_number()
 
     await ctx.send(get_team_head_lineup(team_head_line_number))
     await ctx.send(get_twenty_user_lineup(team_head_line_number))
 
-    await ctx.send(f'감사합니다 여러분. 총 참여 인원은 {people}명 입니다.')
+    await ctx.send(f'총 참여 인원은 꿼뛣쀏뺡?!명 입니다.')
     current_view = None
     view_message = None
     user_info = [[], [], [], [], []]
-    line_person = [0,0,0,0,0]
 
 
 @bot.command(name='마감')
