@@ -7,6 +7,9 @@ from discord import Intents, Client, Message
 from discord.ui import Button, View
 from discord.ext import commands
 from dotenv import load_dotenv
+from SortFunctions import sort_participants, sort_twenty_members
+from TierScore import get_user_tier_score
+from TwentyNaejeon import get_twenty_user_lineup, get_team_head_lineup, get_team_head_number, get_twenty_waiting_list
 
 load_dotenv()
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
@@ -23,426 +26,18 @@ message_log = []
 user_info = [[], [], [], [], []]
 current_view = None
 view_message = None
-
-def sort_participants(participants: set):
-    challenger_users = list()
-    grandmaster_users = list()
-    master_users = list()
-    diamond_users = list()
-    emerald_users = list()
-    platinum_users = list()
-    gold_users = list()
-    silver_users = list()
-    bronze_users = list()
-    iron_users = list()
-    unranked_users = list()
-
-    for user in participants:
-        splitted_user_profile = user.split('/')
-        user_tier_non_strip = splitted_user_profile[1]
-        user_tier = user_tier_non_strip.strip()
-
-        user_level = user_tier[0].upper()
-
-        if user_level == 'C':
-            user_score = int(user_tier[1:])
-            challenger_users.append((user_score,user))
-
-        if user_level == 'G' and user_tier[1].upper() == 'M':
-            user_score = int(user_tier[2:])
-            grandmaster_users.append((user_score,user))
-
-        if user_level == 'M':
-            user_score = int(user_tier[1:])
-            master_users.append((user_score,user))
-
-        if user_level == 'D':
-            user_score = int(user_tier[1:])
-            diamond_users.append((user_score,user))
-
-        if user_level == 'E':
-            user_score = int(user_tier[1:])
-            emerald_users.append((user_score,user))
-
-        if user_level == 'P':
-            user_score = int(user_tier[1:])
-            platinum_users.append((user_score,user))
-
-        if user_level == 'G' and user_tier[1].upper() != 'M':
-            user_score = int(user_tier[1:])
-            gold_users.append((user_score,user))
-
-        if user_level == 'S':
-            user_score = int(user_tier[1:])
-            silver_users.append((user_score,user))
-
-        if user_level == 'B':
-            user_score = int(user_tier[1:])
-            bronze_users.append((user_score,user))
-
-        if user_level == 'I':
-            user_score = int(user_tier[1:])
-            iron_users.append((user_score,user))
-
-        if user_level == 'U':
-            user_score = 0
-            unranked_users.append((user_score,user))
-
-    user_result = list()
-
-    if challenger_users:
-        challenger_users.sort(key=lambda pair: pair[0], reverse=True)
-        for user in challenger_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if grandmaster_users:
-        grandmaster_users.sort(key=lambda pair: pair[0], reverse=True)
-        for user in grandmaster_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if master_users:
-        master_users.sort(key=lambda pair: pair[0], reverse=True)
-        for user in master_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if diamond_users:
-        diamond_users.sort(key=lambda pair: pair[0])
-        for user in diamond_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if emerald_users:
-        emerald_users.sort(key=lambda pair: pair[0])
-        for user in emerald_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if platinum_users:
-        platinum_users.sort(key=lambda pair: pair[0])
-        for user in platinum_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if gold_users:
-        gold_users.sort(key=lambda pair: pair[0])
-        for user in gold_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if silver_users:
-        silver_users.sort(key=lambda pair: pair[0])
-        for user in silver_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if bronze_users:
-        bronze_users.sort(key=lambda pair: pair[0])
-        for user in bronze_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    if unranked_users:
-        for user in unranked_users:
-            user_result.append(user[1])
-        user_result.append('')
-
-    result = ''
-    result += f'=========================================\n\n'
-    for users in user_result:
-        result += f'{users}\n'
-    result += f'=========================================\n'
-
-    return result
-
-def sort_twenty_members(participants: list):
-
-    users = []
-    for participant in participants:
-        users.append(participant[0])
-
-    challenger_users = list()
-    grandmaster_users = list()
-    master_users = list()
-    diamond_users = list()
-    emerald_users = list()
-    platinum_users = list()
-    gold_users = list()
-    silver_users = list()
-    bronze_users = list()
-    iron_users = list()
-    unranked_users = list()
-
-    for user in users:
-        splitted_user_profile = user.split('/')
-        user_tier_non_strip = splitted_user_profile[1]
-        user_tier = user_tier_non_strip.strip()
-
-        user_level = user_tier[0].upper()
-
-        if user_level == 'C':
-            user_score = int(user_tier[1:])
-            challenger_users.append((user_score, user))
-
-        if user_level == 'G' and user_tier[1].upper() == 'M':
-            user_score = int(user_tier[2:])
-            grandmaster_users.append((user_score, user))
-
-        if user_level == 'M':
-            user_score = int(user_tier[1:])
-            master_users.append((user_score, user))
-
-        if user_level == 'D':
-            user_score = int(user_tier[1:])
-            diamond_users.append((user_score, user))
-
-        if user_level == 'E':
-            user_score = int(user_tier[1:])
-            emerald_users.append((user_score, user))
-
-        if user_level == 'P':
-            user_score = int(user_tier[1:])
-            platinum_users.append((user_score, user))
-
-        if user_level == 'G' and user_tier[1].upper() != 'M':
-            user_score = int(user_tier[1:])
-            gold_users.append((user_score, user))
-
-        if user_level == 'S':
-            user_score = int(user_tier[1:])
-            silver_users.append((user_score, user))
-
-        if user_level == 'B':
-            user_score = int(user_tier[1:])
-            bronze_users.append((user_score, user))
-
-        if user_level == 'I':
-            user_score = int(user_tier[1:])
-            iron_users.append((user_score, user))
-
-        if user_level == 'U':
-            user_score = 0
-            unranked_users.append((user_score, user))
-
-    user_result = list()
-
-    if challenger_users:
-        challenger_users.sort(key=lambda pair: pair[0], reverse=True)
-        for user in challenger_users:
-            user_result.append(user[1])
-
-    if grandmaster_users:
-        grandmaster_users.sort(key=lambda pair: pair[0], reverse=True)
-        for user in grandmaster_users:
-            user_result.append(user[1])
-
-    if master_users:
-        master_users.sort(key=lambda pair: pair[0], reverse=True)
-        for user in master_users:
-            user_result.append(user[1])
-
-    if diamond_users:
-        diamond_users.sort(key=lambda pair: pair[0])
-        for user in diamond_users:
-            user_result.append(user[1])
-
-    if emerald_users:
-        emerald_users.sort(key=lambda pair: pair[0])
-        for user in emerald_users:
-            user_result.append(user[1])
-
-    if platinum_users:
-        platinum_users.sort(key=lambda pair: pair[0])
-        for user in platinum_users:
-            user_result.append(user[1])
-
-    if gold_users:
-        gold_users.sort(key=lambda pair: pair[0])
-        for user in gold_users:
-            user_result.append(user[1])
-
-    if silver_users:
-        silver_users.sort(key=lambda pair: pair[0])
-        for user in silver_users:
-            user_result.append(user[1])
-
-    if bronze_users:
-        bronze_users.sort(key=lambda pair: pair[0])
-        for user in bronze_users:
-            user_result.append(user[1])
-
-    if unranked_users:
-        for user in unranked_users:
-            user_result.append(user[1])
-
-
-    return user_result
-
-def get_user_tier_score(user: str):
-    splitted_user_profile = user.split('/')
-    user_name = splitted_user_profile[0].strip()
-    user_tier = splitted_user_profile[1].strip()
-
-    user_level = user_tier[0].upper()
-
-    result = 300
-
-    if user_level == 'C':
-        user_score = int(user_tier[1:])
-        user_editted_score = (user_score // 100) * 10
-        result -= user_editted_score
-
-    if user_level == 'G' and user_tier[1].upper() == 'M':
-        user_score = int(user_tier[2:])
-        user_editted_score = (user_score // 100) * 10
-        result -= user_editted_score
-
-    if user_level == 'M':
-        user_score = int(user_tier[1:])
-        user_editted_score = (user_score // 100) * 10
-        result -= user_editted_score
-
-    if user_level == 'D':
-        user_score = int(user_tier[1:])
-        result += (user_score * 20)
-
-    if user_level == 'E':
-        user_score = int(user_tier[1:])
-        result += 80
-        result += (user_score * 20)
-
-    if user_level == 'P':
-        user_score = int(user_tier[1:])
-        result += 160
-        result += (user_score * 20)
-
-    if user_level == 'G' and user_tier[1].upper() != 'M':
-        user_score = int(user_tier[1:])
-        result += 240
-        result += (user_score * 20)
-
-    if user_level == 'S':
-        user_score = int(user_tier[1:])
-        result += 320
-        result += (user_score * 20)
-
-    if user_level == 'B':
-        user_score = int(user_tier[1:])
-        result += 400
-        result += (user_score * 20)
-
-    if user_level == 'I':
-        user_score = int(user_tier[1:])
-        result += 480
-        result += (user_score * 20)
-
-    if user_level == 'U':
-        result = 1000000
-
-    return result
-
-def get_team_head_number():
-    global user_info
-
-    min_diff = 9999999
-    line_number = 0
-
-
-    for i in range(len(user_info)):
-        max_score = 0
-        min_score = 9999999
-        for index in range(min(4,len(user_info[i]))):
-            users = user_info[i]
-
-            user = users[index][0]
-            user_score = get_user_tier_score(user)
-
-            if user_score > max_score:
-                max_score = user_score
-            if user_score < min_score:
-                min_score = user_score
-
-        diff = max_score - min_score
-
-        if diff >= 0 and diff < min_diff:
-            min_diff = diff
-            line_number = i
-
-    return line_number
-
-
-def get_team_head_lineup(line_number: int):
-    global user_info
-
-    result = ''
-    result += f'팀장\n'
-    result += f'=========================================\n\n'
-
-    user_for_sort = user_info[line_number][0:4]
-
-    users = sort_twenty_members(user_for_sort)
-
-    for i in range(min(4,len(user_info[line_number]))):
-        result += f'{i+1}팀\n'
-        user_score = get_user_tier_score(users[i])
-        result += f'{users[i]} : {user_score}\n\n'
-
-    result += f'========================================='
-
-    return result
-
-def get_twenty_user_lineup(head_line_number: int):
-    global user_info
-
-    line = ['탑','정글','미드','원딜','서폿']
-
-    index = 1
-
-    result = ''
-    result += f'팀원\n'
-    result += f'=========================================\n\n'
-
-    for line_number in range(len(user_info)):
-        if line_number == head_line_number:
-            continue
-
-        user_for_sort = user_info[line_number][0:4]
-
-        users = sort_twenty_members(user_for_sort)
-
-        result += f'{line[line_number]}\n'
-
-        for i in range(len(users)):
-            result += f'{index}. {users[i]}\n'
-            index += 1
-
-        result += f'    \n'
-
-    result += f'========================================='
-
-    return result
+naejeon_creator = None
+twenty_naejeon_creator = None
+twenty_naejeon_channel = None
 
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
 
-@bot.command(name='내전')
-async def start_game(ctx, *, message='모바시'):
-    global recording, message_log, recording_channel
-    if recording == False:
-        recording = True
-        recording_channel = ctx.channel
-        message_log = []
-        await ctx.send(f'@everyone 내전 {message}')
-    else:
-        await ctx.send('이미 내전이 열려 있습니다. 기존의 내전을 마감하고 진행해주세요.')
-
-@bot.command(name='20인내전')
+@bot.command(name='20인내전모집')
 async def start_twenty_game(ctx, *, message='모바시'):
-    global user_info, current_view, view_message
+    global user_info, current_view, view_message, twenty_naejeon_creator, twenty_naejeon_channel
     line = ['탑','정글','미드','원딜','서폿']
 
     class MyView(View):
@@ -525,7 +120,7 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
                     user_info[line_number].append((username, message.id))
 
 
@@ -560,7 +155,7 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
                     user_info[line_number].append((username, message.id))
 
 
@@ -595,7 +190,7 @@ async def start_twenty_game(ctx, *, message='모바시'):
                             flag = False
 
                 if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
                     user_info[line_number].append((username, message.id))
 
 
@@ -643,37 +238,77 @@ async def start_twenty_game(ctx, *, message='모바시'):
 
             return callback
 
-    current_view = MyView()
-
-    view_message = await ctx.send(embed = discord.Embed(title='20인 내전'),view=current_view)
-    await ctx.send(f'@everyone 20인 내전 {message}')
+    if twenty_naejeon_creator == None:
+        current_view = MyView()
+        twenty_naejeon_creator = ctx.author.display_name
+        twenty_naejeon_channel = ctx.channel
+        view_message = await ctx.send(embed = discord.Embed(title=f'20인 내전 {message}'),view=current_view)
+        await ctx.send(f'@everyone 20인 내전 {message}')
 
 @bot.command(name='20인내전마감')
 async def twenty_end_game(ctx):
-    global user_info, current_view, view_message
+    global user_info, current_view, view_message, twenty_naejeon_creator, twenty_naejeon_channel
 
-    if current_view:
-        current_view.clear_items()
-        await view_message.edit(view=current_view)
+    if twenty_naejeon_creator == ctx.author.display_name and twenty_naejeon_channel == ctx.channel:
 
-    team_head_line_number = get_team_head_number()
+        if current_view:
+            current_view.clear_items()
+            await view_message.edit(view=current_view)
 
-    await ctx.send(get_team_head_lineup(team_head_line_number))
-    await ctx.send(get_twenty_user_lineup(team_head_line_number))
+        team_head_line_number = get_team_head_number(user_info)
+        waiting_people_list = get_twenty_waiting_list(user_info)
 
-    await ctx.send(f'총 참여 인원은 꿼뛣쀏뺡?!명 입니다.')
-    current_view = None
-    view_message = None
-    user_info = [[], [], [], [], []]
+        await ctx.send(get_team_head_lineup(team_head_line_number,user_info))
+        await ctx.send(get_twenty_user_lineup(team_head_line_number,user_info))
+
+        if waiting_people_list != '':
+            await ctx.send(waiting_people_list)
+
+        await ctx.send(f'@everyone 20인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
+
+        twenty_naejeon_creator = None
+        current_view = None
+        view_message = None
+        user_info = [[], [], [], [], []]
+
+@bot.command(name='20인내전쫑')
+async def twenty_jjong_game(ctx):
+    global user_info, current_view, view_message, twenty_naejeon_creator
+
+    if twenty_naejeon_creator == ctx.author.display_name and twenty_naejeon_channel == ctx.channel:
+
+        if current_view:
+            current_view.clear_items()
+            await view_message.edit(view=current_view)
+
+        twenty_naejeon_creator = None
+        current_view = None
+        view_message = None
+        user_info = [[], [], [], [], []]
+
+        await ctx.send(f'@everyone 20인 내전 쫑')
+
+@bot.command(name='내전모집')
+async def start_game(ctx, *, message='모바시'):
+    global recording, message_log, recording_channel, naejeon_creator
+    if recording == False:
+        recording = True
+        recording_channel = ctx.channel
+        message_log = []
+        naejeon_creator = ctx.author.display_name
+        await ctx.send(f'@everyone 내전 {message}')
+    else:
+        await ctx.send('이미 내전이 열려 있습니다. 기존의 내전을 마감하고 진행해주세요.')
 
 
-@bot.command(name='마감')
+@bot.command(name='내전마감')
 async def end_game(ctx):
-    global recording, message_log, recording_channel
+    global recording, message_log, recording_channel, naejeon_creator
     if recording == True:
-        if recording_channel == ctx.channel:
+        if recording_channel == ctx.channel and naejeon_creator == ctx.author.display_name:
             recording = False
             participants = set()
+            naejeon_creator = None
 
             for log in message_log:
                 participants.add(log['author'])
@@ -685,19 +320,24 @@ async def end_game(ctx):
                 await ctx.send(participants_result)
             else:
                 await ctx.send('의도치 않은 오류가 발생했습니다.')
+        elif recording_channel == ctx.channel:
+            await ctx.send('내전 마감은 내전 모집을 시작한 분이 직접 입력해주세요.')
         else:
             await ctx.send('다른 채널에서 내전이 진행 중입니다.')
     else:
         await ctx.send('아직 내전이 실행되지 않았습니다. !내전으로 내전을 열어주세요.')
 
-@bot.command(name='쫑')
+@bot.command(name='내전쫑')
 async def jjong_game(ctx):
-    global recording, message_log, recording_channel
-    if recording == True and recording_channel == ctx.channel:
+    global recording, message_log, recording_channel, naejeon_creator
+    if recording == True and recording_channel == ctx.channel and naejeon_creator == ctx.author.display_name:
         recording = False
         message_log = []
         recording_channel = None
+        naejeon_creator = None
         await ctx.send(f'@everyone 쫑')
+    elif recording == True and recording_channel == ctx.channel:
+        await ctx.send('내전 쫑은 내전 모집을 시작한 분이 직접 입력해주세요.')
 
 
 @bot.event
@@ -715,39 +355,31 @@ async def on_message(message):
             'timestamp': message.created_at
         })
 
+    if message.content == '!권기현':
+        await message.channel.send(f'날쌔지 않음')
+
+    if message.content == '!절구':
+        await message.channel.send(f'절구통')
+
+    if message.content == '!배리나':
+        await message.channel.send(f'180KG')
+
+    if message.content == '!제우스':
+        await message.channel.send(f'점수먹는 하마')
+
+    if message.content == '!제드에코' or message.content == '!재진':
+        await message.channel.send(f'에메딱')
+
+    if message.content == '!뭘봐':
+        await message.channel.send(f'마술사의 샌드백')
+
+    if message.content == '!규진' or message.content == '!이규진':
+        await message.channel.send(f'룬테라 정해인')
+
+    if message.content == '!준혁' or message.content == '!야요':
+        await message.channel.send(f'탑징징')
+
     await bot.process_commands(message)
-
-@bot.command(name='권기현')
-async def ddolddol(ctx):
-    await ctx.send(f'날쌔지 않음')
-
-@bot.command(name='절구')
-async def jeolgu(ctx):
-    await ctx.send(f'절구통')
-
-@bot.command(name='배리나')
-async def baerina(ctx):
-    await ctx.send(f'150KG')
-
-@bot.command(name='제우스')
-async def zeus(ctx):
-    await ctx.send(f'점수먹는 하마')
-
-@bot.command(name='뭘봐')
-async def meolbwa(ctx):
-    await ctx.send(f'마술사의 샌드백')
-
-@bot.command(name='제드에코')
-async def zeddekko(ctx):
-    await ctx.send(f'에메딱')
-
-@bot.command(name='준혁')
-async def yayo(ctx):
-    await ctx.send(f'탑징징')
-
-@bot.command(name='규진')
-async def yayo(ctx):
-    await ctx.send(f'0.1 정해인')
 
 @bot.event
 async def on_message_delete(message):
