@@ -96,7 +96,7 @@ def get_twenty_waiting_list(user_info: list):
                 waiting_list += f'{line[line_number]}\n'
 
             if i >= 4:
-                waiting_list += f'{user_info[line_number][0]}\n'
+                waiting_list += f'{user_info[line_number][i][0]}\n'
 
     if waiting_list == '':
         return waiting_list
@@ -108,4 +108,26 @@ def get_twenty_waiting_list(user_info: list):
     result += f'========================================='
 
     return result
+
+def get_twenty_naejeon_warning():
+
+    warning_text = ''
+
+    warning_text += f'경매 방식\n\n'
+    warning_text += f'1. 입찰은 10 단위로 하되 갱신에는 제한이 없습니다.\n'
+    warning_text += f'2. 각 라인별 남은 마지막 매물(유찰포함)은 그 라인이 없는 팀이 무료로 데려갑니다.\n'
+    warning_text += f'   ex) 서폿에 제트님만 남을시 서폿없는팀이 제트님을 무료로 데려갑니다.\n'
+    warning_text += f'3. 입찰에 참여를 할때 팀명과 가격을 말해주세요.\n'
+    warning_text += f'   ex) 1팀 20 이런 방식으로 해주세요.\n'
+    warning_text += f'4. 경매가 끝나고 돈이 제일 많이 남은 팀은 상대팀 지목 및 진영선택권을 가져갑니다.\n\n'
+    warning_text += f'경매 유의사항\n\n'
+    warning_text += f'1. 처음부터 올인을 하거나 반대로 너무 아낄시에는 대참사가 일어날 수 있습니다. 현명한 결정 응원합니다.\n'
+    warning_text += f'2. 경매중에는 팀장 외 마이크는 다 꺼주시기 바랍니다.\n'
+    warning_text += f'3. 경매가 익숙하지 않을 수 있습니다.\n'
+    warning_text += f'   그러나 경매결과가 맘에 들지 않는다고 불평하는 자세는 지양해주시기 바랍니다.\n'
+    warning_text += f'4. 3번 사항이 관리자 혹은 진행자에게 적발이 될 경우 경고를 부여하겠습니다.\n\n'
+    warning_text += f'즐거운 20인 내전 되시길 바랍니다!!'
+
+    return warning_text
+
 

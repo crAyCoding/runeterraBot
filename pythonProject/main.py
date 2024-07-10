@@ -9,7 +9,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from SortFunctions import sort_participants, sort_twenty_members
 from TierScore import get_user_tier_score
-from TwentyNaejeon import get_twenty_user_lineup, get_team_head_lineup, get_team_head_number, get_twenty_waiting_list
+from TwentyNaejeon import get_twenty_user_lineup, get_team_head_lineup, get_team_head_number, get_twenty_waiting_list, get_twenty_naejeon_warning
+from MessageCommand import checkMessage
 
 load_dotenv()
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
@@ -42,7 +43,7 @@ async def start_twenty_game(ctx, *, message='모바시'):
 
     class MyView(View):
         def __init__(self):
-            super().__init__()
+            super().__init__(timeout=10800)
 
             top_button = Button(label=f'탑 : 0', style = discord.ButtonStyle.gray)
             top_button.callback = self.top_callback(top_button)
@@ -260,6 +261,7 @@ async def twenty_end_game(ctx):
 
         await ctx.send(get_team_head_lineup(team_head_line_number,user_info))
         await ctx.send(get_twenty_user_lineup(team_head_line_number,user_info))
+        await ctx.send(get_twenty_naejeon_warning())
 
         if waiting_people_list != '':
             await ctx.send(waiting_people_list)
@@ -355,31 +357,12 @@ async def on_message(message):
             'timestamp': message.created_at
         })
 
-    if message.content == '!권기현':
-        await message.channel.send(f'날쌔지 않음')
+    msg = checkMessage(message.content)
 
-    if message.content == '!절구':
-        await message.channel.send(f'절구통')
-
-    if message.content == '!배리나':
-        await message.channel.send(f'180KG')
-
-    if message.content == '!제우스':
-        await message.channel.send(f'점수먹는 하마')
-
-    if message.content == '!제드에코' or message.content == '!재진':
-        await message.channel.send(f'에메딱')
-
-    if message.content == '!뭘봐':
-        await message.channel.send(f'마술사의 샌드백')
-
-    if message.content == '!규진' or message.content == '!이규진':
-        await message.channel.send(f'룬테라 정해인')
-
-    if message.content == '!준혁' or message.content == '!야요':
-        await message.channel.send(f'탑징징')
-
-    await bot.process_commands(message)
+    if msg:
+        await message.channel.send(msg)
+    else:
+        await bot.process_commands(message)
 
 @bot.event
 async def on_message_delete(message):
