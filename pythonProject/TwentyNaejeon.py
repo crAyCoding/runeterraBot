@@ -1,6 +1,7 @@
 
 from SortFunctions import sort_twenty_members
 from TierScore import get_user_tier_score
+import random
 
 def get_team_head_number(user_info: list):
 
@@ -130,4 +131,14 @@ def get_twenty_naejeon_warning():
 
     return warning_text
 
+def get_twenty_team_choose_number():
 
+    sixteen_numbers = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+    result = []
+
+    for i in range(16):
+        number = random.choice(sixteen_numbers)
+        sixteen_numbers.remove(number)
+        result.append(number)
+
+    return result
