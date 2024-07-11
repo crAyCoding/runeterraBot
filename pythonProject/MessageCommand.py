@@ -12,7 +12,10 @@ def checkMessage(message: str):
         return '날쌔지 않음'
 
     if msg == '절구' or msg == '김절구':
-        return '절구통'
+        f_message = f'```ansi\n'
+        f_message += f'[0;35m@@22男 남친 구합니다 원하시는 분 DM@@[0m\n'
+        f_message += f'```'
+        return f_message
 
     if msg == '배리나':
         return '300KG'
@@ -45,9 +48,33 @@ def checkMessage(message: str):
         return '애디 밑'
 
     if msg == '재슥' or msg == '슥재슥':
-        return '대 재 슥 (다소못함)'
+        return '3회 우승자(다소못함)'
 
     if msg == '애디':
         return '광탈의 제왕 애디'
+
+    if msg == '페레로':
+
+        f_message = f'```ansi\n'
+        f_message += f'[0;35m@@남친 구합니다 20男 여성분 사절@@[0m\n'
+        f_message += f'```'
+        return f_message
+
+    if msg == '스흑':
+
+        f_message = f'```ansi\n'
+        f_message += f'[0;34m사 랑 해 요 김 절 구 내 사 랑[0m\n'
+        f_message += f'```'
+        return f_message
+
+    if msg == '김윤혁':
+        return '잼민이'
+
+    if msg == '아캅스' or msg == 'pnpm':
+
+        f_message = f'```ansi\n'
+        f_message += f'[0;33m26男, 늦었지만 원딜 프로 준비합니다.[0m\n'
+        f_message += f'```'
+        return f_message
 
     return None
