@@ -1,7 +1,6 @@
 from discord.ui import Button, View
-from SortFunctions import sort_twenty_members
+from SortFunctions import sort_naejeon_members
 from TierScore import get_user_tier_score
-import random
 import discord
 
 # 각 라인별 인원 담는 배열
@@ -12,80 +11,38 @@ naejeon_view = None
 naejeon_creator = None
 # 투표를 보낸 메세지를 저장할 변수
 view_message = None
-# 라인 이름
-line = ['탑','정글','미드','원딜','서폿']
 
 
 async def make_twenty_naejeon(ctx, message = '모이면 바로 시작'):
-    global user_info, naejeon_view, naejeon_creator, line, view_message
+    # 20인 내전 모집
+    global user_info, naejeon_view, naejeon_creator, view_message
 
-    class MyView(View):
+    class TwentyView(View):
         def __init__(self):
+            # 투표 제한 시간 설정, 20인 내전은 3시간으로 설정
             super().__init__(timeout=10800)
 
-            top_button = Button(label=f'탑 : 0', style=discord.ButtonStyle.gray)
-            top_button.callback = self.top_callback(top_button)
+            self.line_names = ['탑', '정글', '미드', '원딜', '서폿']
 
-            jg_button = Button(label=f'정글 : 0', style=discord.ButtonStyle.gray)
-            jg_button.callback = self.jg_callback(jg_button)
+            self.buttons = [
+                Button(label=f'{line_name} : 0', style=discord.ButtonStyle.gray)
+                for line_name in self.line_names
+            ]
 
-            mid_button = Button(label=f'미드 : 0', style=discord.ButtonStyle.gray)
-            mid_button.callback = self.mid_callback(mid_button)
+            for i, button in enumerate(self.buttons):
+                button.callback = self.create_callback(i, button)
 
-            ad_button = Button(label=f'원딜 : 0', style=discord.ButtonStyle.gray)
-            ad_button.callback = self.ad_callback(ad_button)
+                self.add_item(button)
 
-            sup_button = Button(label=f'서폿 : 0', style=discord.ButtonStyle.gray)
-            sup_button.callback = self.sup_callback(sup_button)
-
-            self.add_item(top_button)
-            self.add_item(jg_button)
-            self.add_item(mid_button)
-            self.add_item(ad_button)
-            self.add_item(sup_button)
-
-        def top_callback(self, button):
-            line_number = 0
-            line_name = line[line_number]
+        def create_callback(self, line_number, button):
+            # 버튼 상호작용 함수
+            line_name = self.line_names[line_number]
 
             async def callback(interaction: discord.Interaction):
                 username = interaction.user.display_name
                 flag = True
-                for i in range(len(user_info[line_number])):
-                    if user_info[line_number][i][0] == username:
-                        original_message = await interaction.channel.fetch_message(
-                            user_info[line_number][i][1])
-                        await original_message.delete()
-                        del user_info[line_number][i]
-                        flag = False
 
-                for i in range(len(user_info)):
-                    if i == line_number:
-                        continue
-                    for j in range(len(user_info[i])):
-                        if user_info[i][j][0] == username:
-                            flag = False
-
-                if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
-                    user_info[line_number].append((username, message.id))
-
-                button.label = f"{line_name} : {len(user_info[line_number])}"
-                if (len(user_info[line_number]) >= 4):
-                    button.style = discord.ButtonStyle.red
-                else:
-                    button.style = discord.ButtonStyle.gray
-
-                await interaction.response.edit_message(view=self)
-
-            return callback
-        def jg_callback(self, button):
-            line_number = 1
-            line_name = line[line_number]
-
-            async def callback(interaction: discord.Interaction):
-                username = interaction.user.display_name
-                flag = True
+                # 같은 라인에 이미 등록했는지 체크, 등록했다면 유저 삭제
                 for i in range(len(user_info[line_number])):
                     if user_info[line_number][i][0] == username:
                         original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
@@ -93,6 +50,7 @@ async def make_twenty_naejeon(ctx, message = '모이면 바로 시작'):
                         del user_info[line_number][i]
                         flag = False
 
+                # 다른 라인에 등록했는지 체크, 등록되어 있으면 상호작용 무시
                 for i in range(len(user_info)):
                     if i == line_number:
                         continue
@@ -100,151 +58,51 @@ async def make_twenty_naejeon(ctx, message = '모이면 바로 시작'):
                         if user_info[i][j][0] == username:
                             flag = False
 
+                # 위 두 사항에 해당되지 않는 경우, 해당 라인에 참여시키고 메세지 출력
                 if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
-                    user_info[line_number].append((username, message.id))
-
-
-                button.label = f"{line_name} : {len(user_info[line_number])}"
-                if (len(user_info[line_number]) >= 4):
-                    button.style = discord.ButtonStyle.red
-                else:
-                    button.style = discord.ButtonStyle.gray
-
-                await interaction.response.edit_message(view=self)
-
-            return callback
-        def mid_callback(self, button):
-            line_number = 2
-            line_name = line[line_number]
-
-            async def callback(interaction: discord.Interaction):
-                username = interaction.user.display_name
-                flag = True
-                for i in range(len(user_info[line_number])):
-                    if user_info[line_number][i][0] == username:
-                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
-                        await original_message.delete()
-                        del user_info[line_number][i]
-                        flag = False
-
-                for i in range(len(user_info)):
-                    if i == line_number:
-                        continue
-                    for j in range(len(user_info[i])):
-                        if user_info[i][j][0] == username:
-                            flag = False
-
-                if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
-                    user_info[line_number].append((username, message.id))
-
-
-                button.label = f"{line_name} : {len(user_info[line_number])}"
-                if (len(user_info[line_number]) >= 4):
-                    button.style = discord.ButtonStyle.red
-                else:
-                    button.style = discord.ButtonStyle.gray
-
-                await interaction.response.edit_message(view=self)
-
-            return callback
-        def ad_callback(self, button):
-            line_number = 3
-            line_name = line[line_number]
-
-            async def callback(interaction: discord.Interaction):
-                username = interaction.user.display_name
-                flag = True
-                for i in range(len(user_info[line_number])):
-                    if user_info[line_number][i][0] == username:
-                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
-                        await original_message.delete()
-                        del user_info[line_number][i]
-                        flag = False
-
-                for i in range(len(user_info)):
-                    if i == line_number:
-                        continue
-                    for j in range(len(user_info[i])):
-                        if user_info[i][j][0] == username:
-                            flag = False
-
-                if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}로 참여합니다!')
-                    user_info[line_number].append((username, message.id))
-
-
-                button.label = f"{line_name} : {len(user_info[line_number])}"
-                if (len(user_info[line_number]) >= 4):
-                    button.style = discord.ButtonStyle.red
-                else:
-                    button.style = discord.ButtonStyle.gray
-
-                await interaction.response.edit_message(view=self)
-
-            return callback
-        def sup_callback(self, button):
-            line_number = 4
-            line_name = line[line_number]
-
-            async def callback(interaction: discord.Interaction):
-                username = interaction.user.display_name
-                flag = True
-                for i in range(len(user_info[line_number])):
-                    if user_info[line_number][i][0] == username:
-                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
-                        await original_message.delete()
-                        del user_info[line_number][i]
-                        flag = False
-
-                for i in range(len(user_info)):
-                    if i == line_number:
-                        continue
-                    for j in range(len(user_info[i])):
-                        if user_info[i][j][0] == username:
-                            flag = False
-
-                if flag:
-                    message = await ctx.send(f'{username} 님이 {line_name}으로 참여합니다!')
+                    message = await interaction.channel.send(f'{username} 님이 {line_name}로 참여합니다!')
                     user_info[line_number].append((username, message.id))
 
                 button.label = f"{line_name} : {len(user_info[line_number])}"
-                if (len(user_info[line_number]) >= 4):
-                    button.style = discord.ButtonStyle.red
-                else:
-                    button.style = discord.ButtonStyle.gray
+                # 4표 이상이면 버튼 색 빨간색으로 설정
+                button.style = discord.ButtonStyle.red if len(user_info[line_number]) >= 4 else discord.ButtonStyle.gray
 
                 await interaction.response.edit_message(view=self)
 
             return callback
 
+    # 변수 초기화, 새 내전 생성
     user_info = [[], [], [], [], []]
-    naejeon_view = MyView()
+    naejeon_view = TwentyView()
     naejeon_creator = ctx.author.display_name
     view_message = await ctx.send(embed=discord.Embed(title=f'20인 내전 {message}'), view=naejeon_view)
     await ctx.send(f'@everyone 20인 내전 {message}')
 
+    # 내전이 생성되었다는 True 값 반환
     return True
 
 async def magam_twenty_naejeon(ctx):
-    global user_info, naejeon_view, naejeon_creator, line, view_message
+    # 20인 내전 마감
+    global user_info, naejeon_view, naejeon_creator, view_message
 
     if naejeon_creator != ctx.author.display_name:
         return True
 
+    naejeon_members = 20
 
-    team_head_line_number = get_team_head_number(user_info)
-    waiting_people_list = get_twenty_waiting_list(user_info)
+    # 팀장 라인 번호 찾기
+    team_head_line_number = get_team_head_number(user_info, naejeon_members)
+    # 대기자 리스트 추출
+    waiting_people_list = get_waiting_list(user_info, naejeon_members)
 
-    await ctx.send(get_team_head_lineup(team_head_line_number, user_info))
-    await ctx.send(get_twenty_user_lineup(team_head_line_number, user_info))
-    await ctx.send(get_twenty_naejeon_warning())
+    await ctx.send(get_team_head_lineup(team_head_line_number, user_info, naejeon_members))
+    await ctx.send(get_user_lineup(team_head_line_number, user_info, naejeon_members))
+    await ctx.send(get_naejeon_warning(naejeon_members))
 
     if waiting_people_list != '':
         await ctx.send(waiting_people_list)
 
-    await ctx.send(f'@everyone 20인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
+    await ctx.send(f'@everyone {naejeon_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
 
     # 초기화
     await view_message.delete()
@@ -256,10 +114,11 @@ async def magam_twenty_naejeon(ctx):
     return False
 
 async def jjong_twenty_naejeon(ctx):
+    # 20인 내전 쫑
     global user_info, naejeon_view, view_message, naejeon_creator
 
     if naejeon_creator != ctx.author.display_name:
-        return None
+        return True
 
     await ctx.send(f'@everyone 20인 내전 쫑')
 
@@ -269,51 +128,46 @@ async def jjong_twenty_naejeon(ctx):
     naejeon_view = None
     view_message = None
     user_info = None
-    
 
-def get_team_head_number(user_info: list):
+    return False
 
-    min_diff = 9999999
+def get_team_head_number(user_info: list, naejeon_members: int):
+    # 팀장 찾기
+    # 각 라인별 최대 점수, 최소 점수를 구해서 차이가 가장 적은 라인 반환
+
+    min_diff = float('inf')
     line_number = 0
 
+    for i, users in enumerate(user_info):
+        scores = [get_user_tier_score(user[0]) for user in users[:(naejeon_members//5)]]
 
-    for i in range(len(user_info)):
-        max_score = 0
-        min_score = 9999999
-        for index in range(min(4,len(user_info[i]))):
-            users = user_info[i]
+        if scores:
+            diff = max(scores) - min(scores)
 
-            user = users[index][0]
-            user_score = get_user_tier_score(user)
-
-            if user_score > max_score:
-                max_score = user_score
-            if user_score < min_score:
-                min_score = user_score
-
-        diff = max_score - min_score
-
-        if diff >= 0 and diff < min_diff:
-            min_diff = diff
-            line_number = i
+            if 0 <= diff < min_diff:
+                min_diff = diff
+                line_number = i
 
     return line_number
 
+def get_team_head_lineup(line_number: int, user_info: list, naejeon_members: int):
+    # 팀장 결과 반환
 
-def get_team_head_lineup(line_number: int, user_info: list):
+    line_names = ['탑','정글','미드','원딜','서폿']
+    line_name = line_names[line_number]
 
     result = ''
-    result += f'팀장\n'
+    result += f'팀장 : {line_name}\n'
     result += f'=========================================\n\n'
 
-    user_for_sort = []
+    participants = []
 
-    for i in range(min(4,len(user_info[line_number]))):
-        user_for_sort.append(user_info[line_number][i])
+    for i in range(min((naejeon_members//5),len(user_info[line_number]))):
+        participants.append(user_info[line_number][i][0])
 
-    users = sort_twenty_members(user_for_sort)
+    users = sort_naejeon_members(participants)
 
-    for i in range(min(4,len(users))):
+    for i in range(min((naejeon_members//5),len(users))):
         result += f'{i+1}팀\n'
         user_score = get_user_tier_score(users[i])
         result += f'{users[i]} : {user_score}\n\n'
@@ -322,9 +176,10 @@ def get_team_head_lineup(line_number: int, user_info: list):
 
     return result
 
-def get_twenty_user_lineup(head_line_number: int, user_info: list):
+def get_user_lineup(head_line_number: int, user_info: list, naejeon_members: int):
+    # 팀원 결과 반환
 
-    line = ['탑','정글','미드','원딜','서폿']
+    line_names = ['탑','정글','미드','원딜','서폿']
 
     index = 1
 
@@ -336,11 +191,14 @@ def get_twenty_user_lineup(head_line_number: int, user_info: list):
         if line_number == head_line_number:
             continue
 
-        user_for_sort = user_info[line_number][0:4]
+        participants = []
 
-        users = sort_twenty_members(user_for_sort)
+        for i in range(min((naejeon_members // 5), len(user_info[line_number]))):
+            participants.append(user_info[line_number][i][0])
 
-        result += f'{line[line_number]}\n'
+        users = sort_naejeon_members(participants)
+
+        result += f'{line_names[line_number]}\n'
 
         for i in range(len(users)):
             result += f'{index}. {users[i]}\n'
@@ -352,19 +210,19 @@ def get_twenty_user_lineup(head_line_number: int, user_info: list):
 
     return result
 
-def get_twenty_waiting_list(user_info: list):
+def get_waiting_list(user_info: list, naejeon_members: int):
+    # 대기자 명단 반환
 
-    line = ['탑', '정글', '미드', '원딜', '서폿']
-
+    line_names = ['탑', '정글', '미드', '원딜', '서폿']
 
     waiting_list = ''
 
     for line_number in range(len(user_info)):
         for i in range(len(user_info[line_number])):
-            if i == 4:
-                waiting_list += f'{line[line_number]}\n'
+            if i == (naejeon_members//5):
+                waiting_list += f'{line_names[line_number]}\n'
 
-            if i >= 4:
+            if i >= (naejeon_members//5):
                 waiting_list += f'{user_info[line_number][i][0]}\n'
 
     if waiting_list == '':
@@ -378,7 +236,7 @@ def get_twenty_waiting_list(user_info: list):
 
     return result
 
-def get_twenty_naejeon_warning():
+def get_naejeon_warning(naejeon_naejeon_members: int):
 
     warning_text = ''
 
@@ -395,18 +253,6 @@ def get_twenty_naejeon_warning():
     warning_text += f'3. 경매가 익숙하지 않을 수 있습니다.\n'
     warning_text += f'   그러나 경매결과가 맘에 들지 않는다고 불평하는 자세는 지양해주시기 바랍니다.\n'
     warning_text += f'4. 3번 사항이 관리자 혹은 진행자에게 적발이 될 경우 경고를 부여하겠습니다.\n\n'
-    warning_text += f'즐거운 20인 내전 되시길 바랍니다!!'
+    warning_text += f'즐거운 {naejeon_naejeon_members}인 내전 되시길 바랍니다!!'
 
     return warning_text
-
-def get_twenty_team_choose_number():
-
-    sixteen_numbers = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-    result = []
-
-    for i in range(16):
-        number = random.choice(sixteen_numbers)
-        sixteen_numbers.remove(number)
-        result.append(number)
-
-    return result
