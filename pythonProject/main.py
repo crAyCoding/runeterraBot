@@ -66,7 +66,7 @@ async def make_naejeon(ctx, *, message = '모이면 바로 시작'):
         if not is_fourty_naejeon:
             is_fourty_naejeon = await make_fourty_naejeon(ctx, message)
 
-    if channel_id == NAEJEON_A_CHANNEL_ID  or channel_id == TEST_CHANNEL_ID or channel_id == NAEJEON_B_CHANNEL_ID or channel_id == NAEJEON_C_CHANNEL_ID or channel_id == NAEJEON_D_CHANNEL_ID:
+    if channel_id == NAEJEON_A_CHANNEL_ID or channel_id == NAEJEON_B_CHANNEL_ID or channel_id == NAEJEON_C_CHANNEL_ID or channel_id == NAEJEON_D_CHANNEL_ID:
         if not is_naejeon:
             naejeon_log = []
             naejeon_channel = channel_id
@@ -84,7 +84,7 @@ async def magam_naejeon(ctx):
 
     channel_id = str(ctx.channel.id)
 
-    if channel_id == TWENTY_CHANNEL_ID or channel_id == TEST_CHANNEL_ID:
+    if channel_id == TWENTY_CHANNEL_ID:
         if is_twenty_naejeon:
             is_twenty_naejeon = await magam_twenty_naejeon(ctx)
 
@@ -92,7 +92,7 @@ async def magam_naejeon(ctx):
         if is_fourty_naejeon:
             is_fourty_naejeon = await magam_fourty_naejeon(ctx)
 
-    if channel_id == naejeon_channel  or channel_id == TEST_CHANNEL_ID:
+    if channel_id == naejeon_channel:
         if is_naejeon:
             is_naejeon = await magam_normal_naejeon(ctx, naejeon_log)
             if not is_naejeon:
