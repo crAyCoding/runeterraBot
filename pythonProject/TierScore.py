@@ -8,58 +8,29 @@ def get_user_tier_score(user: str):
 
     user_level = user_tier[0].upper()
 
-    result = 300
-
-    if user_level == 'C':
-        user_score = int(user_tier[1:])
-        user_editted_score = (user_score // 100) * 10
-        result -= user_editted_score
-
     if user_level == 'G' and user_tier[1].upper() == 'M':
         user_score = int(user_tier[2:])
-        user_editted_score = (user_score // 100) * 10
-        result -= user_editted_score
-
-    if user_level == 'M':
+    else:
         user_score = int(user_tier[1:])
-        user_editted_score = (user_score // 100) * 10
-        result -= user_editted_score
 
-    if user_level == 'D':
-        user_score = int(user_tier[1:])
-        result += (user_score * 10)
+    def get_editted_score(user_score):
+        return (user_score // 100) * 10
 
-    if user_level == 'E':
-        user_score = int(user_tier[1:])
-        result += 40
-        result += (user_score * 10)
+    score_by_tier = {
+        'C': -get_editted_score(user_score),
+        'G': -get_editted_score(user_score) if user_tier[1].upper() == 'M' else (user_score * 10) + 120,
+        'M': -get_editted_score(user_score),
+        'D': user_score * 10,
+        'E': (user_score * 10) + 40,
+        'P': (user_score * 10) + 80,
+        'S': (user_score * 10) + 160,
+        'B': (user_score * 10) + 200,
+        'I': (user_score * 10) + 240
+    }
 
-    if user_level == 'P':
-        user_score = int(user_tier[1:])
-        result += 80
-        result += (user_score * 10)
+    default_score = 300
 
-    if user_level == 'G' and user_tier[1].upper() != 'M':
-        user_score = int(user_tier[1:])
-        result += 120
-        result += (user_score * 10)
-
-    if user_level == 'S':
-        user_score = int(user_tier[1:])
-        result += 160
-        result += (user_score * 10)
-
-    if user_level == 'B':
-        user_score = int(user_tier[1:])
-        result += 200
-        result += (user_score * 10)
-
-    if user_level == 'I':
-        user_score = int(user_tier[1:])
-        result += 240
-        result += (user_score * 10)
-
-    if user_level == 'U':
-        result = 1000000
-
-    return result
+    if user_level in score_by_tier:
+        return default_score + score_by_tier[user_level]
+    else:
+        return 99999999

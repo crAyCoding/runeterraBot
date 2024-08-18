@@ -118,3 +118,26 @@ def sort_naejeon_members(participants: list):
 
 
     return user_result
+
+def get_result_sorted_by_tier(user_result: list):
+    now_tier = ''
+    result = ''
+    result += f'=========================================\n\n'
+    for user in user_result:
+        splitted_user_profile = user.split('/')
+        user_tier = splitted_user_profile[1].strip()
+        if user_tier[0] == '🔻' or user_tier[0] == '🔺':
+            user_tier = user_tier[1:]
+        user_level = user_tier[0].upper()
+        if now_tier == '':
+            now_tier = user_level
+        elif now_tier != user_level:
+            now_tier = user_level
+            result += f'\n'
+        result += f'{user}\n'
+    result += f'\n=========================================\n'
+    result += f'\n\n🟦  블루진영\n\n\n'
+    result += f'🟥  레드진영\n\n\n'
+    result += f'=========================================\n'
+
+    return result

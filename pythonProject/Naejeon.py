@@ -1,4 +1,5 @@
 from SortFunctions import sort_naejeon_members
+from TierScore import get_user_tier_score
 
 naejeon_creator = None
 
