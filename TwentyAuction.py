@@ -311,15 +311,6 @@ def get_auction_warning():
     return warning_text
 
 
-async def test_twenty(ctx):
-    global team_head_lineup, team_user_lineup
-
-    await ctx.send(f'!경매 를 통해 경매를 시작할 수 있습니다.')
-
-    if waiting_people_list != '':
-        await ctx.send(waiting_people_list)
-
-
 def read_file_and_split_to_arrays(filename, chunk_size=4):
     user_list = [[], [], [], [], []]
     index = -1
