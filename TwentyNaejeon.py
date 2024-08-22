@@ -55,6 +55,7 @@ async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
                         await original_message.delete()
                         del user_info[line_number][i]
                         flag = False
+                        break
 
                 # 다른 라인에 등록했는지 체크, 등록되어 있으면 상호작용 무시
                 for i in range(len(user_info)):
