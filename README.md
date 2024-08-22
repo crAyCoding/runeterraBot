@@ -14,7 +14,10 @@ https://disboard.org/ko/server/1200370880790929449
 - `!내전` 키워드를 통해 내전을 엽니다.
 - 정해진 채널(내전모집 A, B, C, D)에서만 가능합니다.
 - 예시는 다음과 같습니다.
+- ![image](https://github.com/user-attachments/assets/007c0c69-7f14-4375-a3ee-7056958e730b)
+
 - 결과 예시도 아래와 같이 나옵니다. (현재 밴픽의 경우, www.banpick.kr 사이트 이용 중)
+- ![image](https://github.com/user-attachments/assets/be2a1eb8-047d-44ce-bd8d-42277e003585)
 
 ### 20인 내전 (모집, 경매)
 
@@ -24,8 +27,18 @@ https://disboard.org/ko/server/1200370880790929449
 - 각 라인 별로 4명씩 모아, 최소 20명이 되었을 때 `!마감` 키워드를 이용하여 결과를 도출합니다.
 - 이후 `20인내전경매` 채널에서 `!경매`를 통해 경매를 진행할 수 있습니다.
 - 모집 예시
+- ![image](https://github.com/user-attachments/assets/007f8819-a224-41bc-bf31-12869738b9f9)
+
 - 결과 예시
+- 팀장
+- ![image](https://github.com/user-attachments/assets/7cfc5fbd-d73a-40a8-8166-929532727e79)
+- 팀원
+- ![image](https://github.com/user-attachments/assets/253463d1-87dd-4c0b-a69a-51d8c73cdb4d)
+- 대기 명단
+- ![image](https://github.com/user-attachments/assets/6918d882-752b-472b-81ea-54647f37fe79)
+
 - 경매 예시
+- ![image](https://github.com/user-attachments/assets/eb3de099-d741-4fff-99cf-71d5cea38a12)
 
 ### 40인 내전
 
