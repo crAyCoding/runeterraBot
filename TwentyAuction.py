@@ -106,7 +106,7 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
 
     # 첫번째 로테이션.
     while team_users:
-        auction_result_message = await ctx.send(get_auction_result(team_scores,auction_list))
+        auction_result_message = await ctx.send(get_auction_result(team_scores, auction_list))
         auction_remain_message = await ctx.send(get_auction_remain_user(team_user_list))
         now_user = team_users.pop(0)
         user_number = now_user[0]
@@ -150,7 +150,7 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
             team_scores[team_number - 1] -= auction_score
             user_lines_count[user_line] += 1
 
-            def process_users(user_list, user_line, auction_list, team_user_list, user_lines):
+            def process_users(user_list, user_line, auction_list, remain_user_list, user_lines):
                 for user in user_list[:]:
                     user_number, user_name = user
                     user_line_index = (user_number - 1) // 4
@@ -161,16 +161,19 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
                             if not team[1][user_line_number]:
                                 team[1][user_line_number] = f'{user_name} > FREE'
                         user_list.remove(user)
+                        continue
 
-                team_user_list[:] = [
-                    [u for u in lines if u[0] not in [user[0] for user in user_list]]
-                    for lines in team_user_list
-                ]
+                for user in user_list:
+                    remain_user_list.append(user)
 
             if user_lines_count[user_line] == 3:
-                process_users(team_users, user_line, auction_list, team_user_list, user_lines)
-                process_users(yoochal_users, user_line, auction_list, team_user_list, user_lines)
-
+                remain_user_list = []
+                process_users(team_users, user_line, auction_list, remain_user_list, user_lines)
+                process_users(yoochal_users, user_line, auction_list, remain_user_list, user_lines)
+                team_user_list[:] = [
+                    [u for u in lines if u[0] in [user[0] for user in remain_user_list]]
+                    for lines in team_user_list
+                ]
 
         if not team_users:
             team_users = yoochal_users
@@ -297,16 +300,17 @@ def get_auction_warning():
     warning_text = ''
 
     warning_text += f'## 경매 진행 참고사항\n'
-    warning_text += f'- 명단에 변경 사항이 있는 경우 수정하기 버튼을 눌러 수정해주시길 바랍니다.\n'
-    warning_text += f'- 수정하는 팝업 크기가 작으므로 변경 사항이 많은 경우 메모장에서 변경 후 복사 붙여넣기 하는 것을 추천드립니다.\n'
-    warning_text += f'- 경매 시작 버튼을 누르면 경매가 진행됩니다.\n'
-    warning_text += f'- 한 번 경매 시작 버튼을 누르면 명단 수정이 불가능합니다.\n'
-    warning_text += f'- 또한 제공된 양식에서 벗어나거나, 인원이 20명이 아닌 경우 경매 시작이 안되는 점 참고바랍니다.\n'
-    warning_text += f'- 경매가 시작되면 랜덤으로 한명씩 출력되며, 마이크로 경매를 진행해주시면 됩니다.\n'
-    warning_text += f'- 경매 결과에 해당하는 팀 번호 버튼을 누르고, 입력창에 가격을 입력해주시면 됩니다.\n'
-    warning_text += f'- 한 번 반영된 경매 결과는 되돌리기가 불가능합니다. 확실하게 진행해주시길 바랍니다.\n'
-    warning_text += f'- 유찰의 경우 자동으로 유찰 대기열에 추가되며, 경매가 종료된 이후 유찰 대기열로 경매를 추가 진행합니다.\n'
-    warning_text += f'- 혹여 오류가 발생한 경우, 번거롭더라도 수동으로 추가 진행 부탁드립니다.'
+    warning_text += f'명단에 변경 사항이 있는 경우 수정하기 버튼을 눌러 수정해주시길 바랍니다.\n'
+    warning_text += f'수정하는 팝업 크기가 작으므로 변경 사항이 많은 경우 메모장에서 변경 후 복사 붙여넣기 하는 것을 추천드립니다.\n'
+    warning_text += f'경매 시작 버튼을 누르면 경매가 진행됩니다.\n'
+    warning_text += f'한 번 경매 시작 버튼을 누르면 명단 수정이 불가능합니다.\n'
+    warning_text += f'또한 제공된 양식에서 벗어나거나, 인원이 20명이 아닌 경우 경매 시작이 안되는 점 참고바랍니다.\n'
+    warning_text += f'### 경매 시작을 누른 사람이 진행자가 됩니다. 진행자가 아닌 경우 장난으로 경매 시작 버튼 누르지 마시길 바랍니다.\n'
+    warning_text += f'경매가 시작되면 랜덤으로 한명씩 출력되며, 마이크로 경매를 진행해주시면 됩니다.\n'
+    warning_text += f'경매 결과에 해당하는 팀 번호 버튼을 누르고, 입력창에 가격을 입력해주시면 됩니다. ex) 1팀 80\n'
+    warning_text += f'#### 한 번 반영된 경매 결과는 되돌리기가 불가능합니다. 확실하게 진행해주시길 바랍니다.\n'
+    warning_text += f'유찰의 경우 자동으로 유찰 대기열에 추가되며, 경매가 종료된 이후 유찰 대기열로 경매를 추가 진행합니다.\n'
+    warning_text += f'혹여 오류가 발생한 경우, 번거롭더라도 수동으로 추가 진행 부탁드립니다.'
 
     return warning_text
 
