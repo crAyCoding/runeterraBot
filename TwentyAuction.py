@@ -9,7 +9,7 @@ from TwentyNaejeon import get_team_head_number, get_waiting_list, get_team_head_
 user_list = None
 
 
-def add_user_info(user_info):
+async def add_user_info(user_info):
     global user_list
 
     user_list = user_info
@@ -19,7 +19,7 @@ async def run_twenty_auction(ctx):
     global user_list
 
     # user_list는 20인 내전으로부터 받아와야 함. 일단 지금은 생략
-    user_list = read_file_and_split_to_arrays('twentyex.txt')
+    # user_list = read_file_and_split_to_arrays('twentyex.txt')
 
     if user_list is None:
         await ctx.send(f'문제가 발생했습니다. 수동으로 경매를 진행해주세요.')
@@ -104,7 +104,7 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
 
     random.shuffle(team_users)
 
-    # 첫번째 로테이션.
+    # 경매 로테이션.
     while team_users:
         auction_result_message = await ctx.send(get_auction_result(team_scores, auction_list))
         auction_remain_message = await ctx.send(get_auction_remain_user(team_user_list))
@@ -308,21 +308,9 @@ def get_auction_warning():
     warning_text += f'### 경매 시작을 누른 사람이 진행자가 됩니다. 진행자가 아닌 경우 장난으로 경매 시작 버튼 누르지 마시길 바랍니다.\n'
     warning_text += f'경매가 시작되면 랜덤으로 한명씩 출력되며, 마이크로 경매를 진행해주시면 됩니다.\n'
     warning_text += f'경매 결과에 해당하는 팀 번호 버튼을 누르고, 입력창에 가격을 입력해주시면 됩니다. ex) 1팀 80\n'
-    warning_text += f'#### 한 번 반영된 경매 결과는 되돌리기가 불가능합니다. 확실하게 진행해주시길 바랍니다.\n'
+    warning_text += f'### 한 번 반영된 경매 결과는 되돌리기가 불가능합니다. 확실하게 진행해주시길 바랍니다.\n'
     warning_text += f'유찰의 경우 자동으로 유찰 대기열에 추가되며, 경매가 종료된 이후 유찰 대기열로 경매를 추가 진행합니다.\n'
     warning_text += f'혹여 오류가 발생한 경우, 번거롭더라도 수동으로 추가 진행 부탁드립니다.'
 
     return warning_text
 
-
-def read_file_and_split_to_arrays(filename, chunk_size=4):
-    user_list = [[], [], [], [], []]
-    index = -1
-    with open(filename, 'r', encoding='utf-8') as file:
-        lines = [line.strip() for line in file.readlines()]
-        for i in range(20):
-            if i % 4 == 0:
-                index += 1
-            user_list[index].append((lines[i], ''))
-
-    return user_list

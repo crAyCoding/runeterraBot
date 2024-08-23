@@ -1,7 +1,6 @@
 from discord.ui import Button, View, Modal
 from SortFunctions import sort_naejeon_members
 from TierScore import get_user_tier_score
-from datetime import datetime
 import discord
 
 
@@ -115,10 +114,12 @@ async def magam_twenty_naejeon(ctx):
 
     await ctx.send(get_naejeon_warning(naejeon_members))
 
-    # add_user_info(user_info)
+    from TwentyAuction import add_user_info
+
+    await add_user_info(user_info)
 
     await ctx.send(f'@everyone {naejeon_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
-    # await ctx.send(f'20인내전경매 채널에서 !경매 를 통해 경매를 시작할 수 있습니다.')
+    await ctx.send(f'20인내전경매 채널에서 !경매 를 통해 경매를 시작할 수 있습니다.')
 
     # 초기화
     await view_message.delete()
@@ -276,3 +277,19 @@ def get_naejeon_warning(naejeon_members: int):
     warning_text += f'즐거운 {naejeon_members}인 내전 되시길 바랍니다!!'
 
     return warning_text
+
+async def test_add_twenty():
+    global user_info
+
+    user_info = [[],[],[],[],[]]
+    index = -1
+    with open('twentyex.txt', 'r', encoding='utf-8') as file:
+        lines = [line.strip() for line in file.readlines()]
+        for i in range(20):
+            if i % 4 == 0:
+                index += 1
+            user_info[index].append((lines[i], ''))
+
+    from TwentyAuction import add_user_info
+
+    await add_user_info(user_info)

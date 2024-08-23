@@ -257,6 +257,7 @@ async def twenty_auction_naejeon(ctx):
 
 @bot.command(name='테스트')
 async def test_test(ctx):
+    await test_add_twenty()
     await run_twenty_auction(ctx)
 
 def main() -> None:
