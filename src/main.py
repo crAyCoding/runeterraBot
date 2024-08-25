@@ -1,16 +1,14 @@
-import asyncio
 from typing import Final
 import os
 import sys
 
-import discord
 from discord import Intents
 from discord.ext import commands
 from dotenv import load_dotenv
 
 from TwentyAuction import run_twenty_auction
 from TwentyNaejeon import *
-from FourtyNaejeon import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
+from src.FourtyNaejeon import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
 from Naejeon import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
 from SortFunctions import sort_naejeon_members, get_result_sorted_by_tier
 from MessageCommand import checkMessage
@@ -255,7 +253,7 @@ async def twenty_auction_naejeon(ctx):
     if channel_id == TWENTY_NAEJEON_AUCTION_CHANNEL_ID:
         await run_twenty_auction(ctx)
 
-@bot.command(name='테스트')
+@bot.command(name='수동경매')
 async def test_test(ctx):
     await test_add_twenty()
     await run_twenty_auction(ctx)
