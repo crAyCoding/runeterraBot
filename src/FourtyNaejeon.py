@@ -1,6 +1,5 @@
 from discord.ui import Button, View
 from TwentyNaejeon import get_naejeon_warning, get_team_head_lineup, get_team_head_number, get_user_lineup, get_waiting_list
-import random
 import discord
 
 # 각 라인별 인원 담는 배열

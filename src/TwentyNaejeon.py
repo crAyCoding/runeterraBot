@@ -1,6 +1,6 @@
 from discord.ui import Button, View
-from src.SortFunctions import sort_naejeon_members
-from src.TierScore import get_user_tier_score
+from SortFunctions import sort_naejeon_members
+from TierScore import get_user_tier_score
 import discord
 
 
@@ -114,7 +114,7 @@ async def magam_twenty_naejeon(ctx):
 
     await ctx.send(get_naejeon_warning(naejeon_members))
 
-    from src.TwentyAuction import add_user_info
+    from TwentyAuction import add_user_info
 
     await add_user_info(user_info)
 
@@ -290,6 +290,6 @@ async def test_add_twenty():
                 index += 1
             user_info[index].append((lines[i], ''))
 
-    from src.TwentyAuction import add_user_info
+    from TwentyAuction import add_user_info
 
     await add_user_info(user_info)

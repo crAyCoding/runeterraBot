@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from TwentyAuction import run_twenty_auction
 from TwentyNaejeon import *
-from src.FourtyNaejeon import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
+from FourtyNaejeon import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
 from Naejeon import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
 from SortFunctions import sort_naejeon_members, get_result_sorted_by_tier
 from MessageCommand import checkMessage
