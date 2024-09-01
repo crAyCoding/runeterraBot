@@ -4,6 +4,7 @@ import sys
 
 from discord import Intents
 from discord.ext import commands
+from discord.ui import Modal
 from dotenv import load_dotenv
 
 from TwentyAuction import run_twenty_auction
@@ -169,13 +170,8 @@ async def on_message(message):
             participants.add(log['name'])
 
         if len(participants) == 10:
-            user_result = sort_naejeon_members(participants)
 
-            result = get_result_sorted_by_tier(user_result)
-
-            await message.channel.send(f'@everyone 내전 모집이 마감되었습니다. 모두 모여주세요.')
-            await message.channel.send(result)
-            await message.channel.send(f'🔓 사용자 지정게임 방제목 : 룬테라 / 비밀번호 : 1234\n📌  밴픽 시뮬레이터 : https://www.banpick.kr/')
+            await magam_normal_naejeon(message.channel, list(participants))
 
             naejeon_log = None
             naejeon_channel = None
@@ -257,6 +253,18 @@ async def twenty_auction_naejeon(ctx):
 async def test_test(ctx):
     await test_add_twenty()
     await run_twenty_auction(ctx)
+
+
+@bot.command(name='테스트')
+async def test_only_def(ctx):
+    participants = []
+    with open('naejeonex.txt', 'r', encoding='utf-8') as file:
+        lines = [line.strip() for line in file.readlines()]
+        for i in range(10):
+            participants.append(lines[i])
+
+    await magam_normal_naejeon(ctx, participants)
+
 
 def main() -> None:
     bot.run(token=TOKEN)

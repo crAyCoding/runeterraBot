@@ -136,8 +136,5 @@ def get_result_sorted_by_tier(user_result: list):
             result += f'\n'
         result += f'{user}\n'
     result += f'\n=========================================\n'
-    result += f'\n\n🟦  블루진영\n\n\n'
-    result += f'🟥  레드진영\n\n\n'
-    result += f'=========================================\n'
 
     return result

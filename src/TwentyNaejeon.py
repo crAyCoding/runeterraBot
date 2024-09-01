@@ -274,7 +274,7 @@ def get_naejeon_warning(naejeon_members: int):
     warning_text += f'3. 경매가 익숙하지 않을 수 있습니다.\n'
     warning_text += f'   그러나 경매결과가 맘에 들지 않는다고 불평하는 자세는 지양해주시기 바랍니다.\n'
     warning_text += f'4. 3번 사항이 관리자 혹은 진행자에게 적발이 될 경우 경고를 부여하겠습니다.\n\n'
-    warning_text += f'즐거운 {naejeon_members}인 내전 되시길 바랍니다!!'
+    warning_text += f'즐거운 {naejeon_members}인 내전 되시길 바랍 니다!!'
 
     return warning_text
 
