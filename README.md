@@ -50,3 +50,14 @@ https://disboard.org/ko/server/1200370880790929449
 - `!(text)`를 이용해 서버 내에서 특정 인물을 대상으로 한 명령어가 출력됩니다.
 - 서버에 주로 활동하는 사람들에게 재미로 넣어봤던 기능입니다.
 - 8/15부터 현재 비활성화 상태입니다.
+
+
+### Docker
+
+- 현재 개인 컴퓨터에서 docker container를 사용하여 돌아가고 있습니다.
+- 사용법
+
+```
+docker build -t runeterra-bot .
+docker run -d --name runeterra_bot --restart unless-stopped runeterra-bot
+```

@@ -257,11 +257,11 @@ async def test_test(ctx):
 
 @bot.command(name='테스트')
 async def test_only_def(ctx):
-    participants = []
-    with open('naejeonex.txt', 'r', encoding='utf-8') as file:
-        lines = [line.strip() for line in file.readlines()]
-        for i in range(10):
-            participants.append(lines[i])
+    participants = ['순간번쩍#KR1 / M20 / TOP','FERRERO0#KR1 / E3 / TOP','마술사의 수습생 #KR1 / D1 / AD','메벤남#쌀숭이 / D3 /JG,TOP,SUP','엄마가만든카레 #KR1 / E1 / MID','This is Attacker #KR1 / E1 / AD','뭘by녀석아 #KR1 / E3 / AD, 제육','피자시켜놓고피클만쳐먹는성수#Pizza/M195 / ALL','쥬 예 #0410 / D2 / ALL','Lo fi #RELAX/ D2 /SUP,AD']
+    # with open('./naejeonex.txt', 'r', encoding='utf-8') as file:
+    #     lines = [line.strip() for line in file.readlines()]
+    #     for i in range(10):
+    #         participants.append(lines[i])
 
     await magam_normal_naejeon(ctx, participants)
 

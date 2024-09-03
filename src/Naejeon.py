@@ -1,10 +1,8 @@
 import random
 
 import discord
-from discord.ui import View
 
 from SortFunctions import sort_naejeon_members, get_result_sorted_by_tier
-from TierScore import get_user_tier_score
 
 naejeon_creator = None
 
@@ -28,7 +26,7 @@ async def magam_normal_naejeon(ctx, participants):
 
     class NaejeonView(discord.ui.View):
         def __init__(self):
-            super().__init__()
+            super().__init__(timeout=3600)
             self.members = [NaejeonMember(i) for i in range(0, 10)]
             for member in self.members:
                 self.add_item(EditButton(member))
@@ -48,7 +46,7 @@ async def magam_normal_naejeon(ctx, participants):
 
     class EditModal(discord.ui.Modal):
         def __init__(self, member):
-            super().__init__(title=f"{member.index}번 닉네임 변경")
+            super().__init__(title=f"{member.index}번 닉네임 수정")
             self.member = member
 
             self.text_input = discord.ui.TextInput(
@@ -66,6 +64,8 @@ async def magam_normal_naejeon(ctx, participants):
             super().__init__(label=f"명단 확정", style=discord.ButtonStyle.success)
 
         async def callback(self, interaction: discord.Interaction):
+            username = interaction.user.display_name
+            await ctx.send(f'{username}님이 명단을 확정지었습니다.')
             await interaction.message.delete()
             final_participants = []
             for member in view.members:
@@ -108,10 +108,11 @@ async def handle_naejeon_team(ctx, participants):
 
     class HandleTeamView(discord.ui.View):
         def __init__(self):
-            super().__init__()
+            super().__init__(timeout=3600)
             self.members = [NaejeonMember(i) for i in range(0, 10)]
             for member in self.members:
                 self.add_item(TeamHeadButton(member))
+            self.add_item(StopButton())
 
     class TeamHeadButton(discord.ui.Button):
         def __init__(self, member):
@@ -119,8 +120,9 @@ async def handle_naejeon_team(ctx, participants):
             self.member = member
 
         async def callback(self, interaction: discord.Interaction):
+            username = interaction.user.display_name
             team_head_list.append(self.member.name)
-            await ctx.send(f'{self.member.name}님이 팀장입니다.')
+            await ctx.send(f'{username}님이 버튼을 눌렀습니다. {self.member.name}님이 팀장입니다.')
             self.view.remove_item(self)
             self.view.members.remove(self.member)
             if len(team_head_list) == 2:
@@ -129,6 +131,15 @@ async def handle_naejeon_team(ctx, participants):
                 return
 
             await interaction.response.edit_message(content=f'## 두번째 팀장 닉네임 버튼을 눌러주세요.', view=self.view)
+
+    class StopButton(discord.ui.Button):
+        def __init__(self):
+            super().__init__(label=f"메모장으로 진행", style=discord.ButtonStyle.red)
+
+        async def callback(self, interaction: discord.Interaction):
+            username = interaction.user.display_name
+            await ctx.send(f'{username}님이 메모장으로 진행을 선택하셨습니다.')
+            await interaction.message.delete()
 
     handle_team_view = HandleTeamView()
     await ctx.send(content=f'## 팀장 두 분의 닉네임 버튼을 눌러주세요.', view=handle_team_view)
@@ -146,7 +157,7 @@ async def choose_blue_red_naejeon(ctx, team_head_list, members):
 
     class BlueRedView(discord.ui.View):
         def __init__(self):
-            super().__init__()
+            super().__init__(timeout=3600)
             self.add_item(BlueButton())
             self.add_item(RedButton())
 
@@ -155,10 +166,10 @@ async def choose_blue_red_naejeon(ctx, team_head_list, members):
             super().__init__(label=f"블루팀", style=discord.ButtonStyle.primary)
 
         async def callback(self, interaction: discord.Interaction):
-            # username = interaction.user.display_name
-            # if username != selected:
-            #     await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
-            #     return
+            username = interaction.user.display_name
+            if username != selected:
+                await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
+                return
             blue_team.append(selected)
             red_team.append(team_head_list[0])
             await ctx.send(f'{selected}님이 블루팀을 선택하셨습니다.')
@@ -170,10 +181,10 @@ async def choose_blue_red_naejeon(ctx, team_head_list, members):
             super().__init__(label=f"레드팀", style=discord.ButtonStyle.red)
 
         async def callback(self, interaction: discord.Interaction):
-            # username = interaction.user.display_name
-            # if username != selected:
-            #     await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
-            #     return
+            username = interaction.user.display_name
+            if username != selected:
+                await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
+                return
             red_team.append(selected)
             blue_team.append(team_head_list[0])
             await ctx.send(f'{selected}님이 레드팀을 선택하셨습니다.')
@@ -200,7 +211,7 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
 
     class OrderView(discord.ui.View):
         def __init__(self):
-            super().__init__()
+            super().__init__(timeout=3600)
             self.add_item(FirstPickButton())
             self.add_item(SecondPickButton())
 
@@ -209,10 +220,10 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
             super().__init__(label=f"선뽑(먼저 한명 뽑기)", style=discord.ButtonStyle.primary)
 
         async def callback(self, interaction: discord.Interaction):
-            # username = interaction.user.display_name
-            # if username != selected:
-            #     await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=order_view)
-            #     return
+            username = interaction.user.display_name
+            if username != selected:
+                await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=order_view)
+                return
             await ctx.send(f'{selected}님이 선뽑입니다.')
             await interaction.message.delete()
             await choose_naejeon_team(ctx, teams, order_flag, members)
@@ -223,10 +234,10 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
             super().__init__(label=f"후뽑(나중에 두명 뽑기)", style=discord.ButtonStyle.red)
 
         async def callback(self, interaction: discord.Interaction):
-            # username = interaction.user.display_name
-            # if username != selected:
-            #     await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
-            #     return
+            username = interaction.user.display_name
+            if username != selected:
+                await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
+                return
             await ctx.send(f'{selected}님이 후뽑입니다.')
             await interaction.message.delete()
             await choose_naejeon_team(ctx, teams, not order_flag, members)
@@ -237,6 +248,7 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
 
 
 async def choose_naejeon_team(ctx, teams, flag, members):
+    await ctx.send(f'=========================================')
 
     pick_order = [flag, not flag, not flag, flag, flag, not flag, not flag, flag]
 
@@ -262,6 +274,7 @@ async def choose_naejeon_team(ctx, teams, flag, members):
             self.member = member
 
         async def callback(self, interaction: discord.Interaction):
+            username = interaction.user.display_name
             self.view.remove_item(self)
             self.view.members.remove(self.member)
             if pick_order[0]:
@@ -273,15 +286,20 @@ async def choose_naejeon_team(ctx, teams, flag, members):
                 team_head = teams[0][0]
             else:
                 team_head = teams[1][0]
+            await ctx.send(f'{username}님이 {self.member.name}을 뽑았습니다.')
             if len(pick_order) == 1:
                 if pick_order[0]:
-                    teams[0].append(self.member.name)
+                    teams[0].append(self.view.members[0].name)
                 else:
-                    teams[1].append(self.member.name)
+                    teams[1].append(self.view.members[0].name)
                 await interaction.message.delete()
                 await ctx.send(get_naejeon_board(teams))
+                await ctx.send(f'밴픽툴은 현재 개발 중입니다. 그 전까지 아래 사이트를 이용하시면 됩니다.')
+                await ctx.send(f'banpick.kr')
+                await ctx.send(f'사용자설정 방 제목 : 룬테라 / 비밀번호 : 1234')
                 return
             await interaction.response.edit_message(content=f'{get_naejeon_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.', view=self.view)
+
 
 
     choose_naejeon_view = ChooseNaejeonView()
