@@ -104,6 +104,8 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
 
     random.shuffle(team_users)
 
+    end_flag = False
+
     # 경매 로테이션.
     while team_users:
         auction_result_message = await ctx.send(get_auction_result(team_scores, auction_list))
@@ -121,6 +123,8 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
             msg_content = message.content
             if msg_content == '유찰':
                 return True
+            if msg_content == '종료':
+                return True
             msg_info = msg_content.split(' ')
             if len(msg_info) != 2:
                 return False
@@ -136,6 +140,11 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
 
         if user_message.content == '유찰':
             yoochal_users.append(now_user)
+        elif user_message.content == '종료':
+            await auction_result_message.delete()
+            await auction_remain_message.delete()
+            end_flag = True
+            break
         else:
             message_info = user_message.content.split(' ')
             team_number = int(message_info[0][0])
@@ -182,13 +191,17 @@ async def twenty_auction(host: str, auction_list, team_user_list, ctx):
         await auction_result_message.delete()
         await auction_remain_message.delete()
 
-    await ctx.send(get_auction_result(team_scores, auction_list))
-    team_max_score = team_scores.index(max(team_scores)) + 1
-    await ctx.send(f'경매가 완료되었습니다. {team_max_score}팀 팀장은 팀과 회의를 진행한 뒤 20인내전채팅 채널에 붙을 팀을 적어주시면 됩니다.')
-    await ctx.send(f'4강전은 남은 점수가 높은 팀이 첫번째 판 진영 선택권을 가집니다. 점수가 동일한 경우 주사위를 굴려 진행해주시면 됩니다.')
-    await ctx.send(f'모두 화이팅입니다!')
-    # await ctx.send(get_auction_remain_user(team_user_list))
-    user_list = None
+    if end_flag:
+        await ctx.send(f'경매를 강제 종료하였습니다. !경매를 통해 재시작할 수 있습니다.')
+    else:
+        await ctx.send(get_auction_result(team_scores, auction_list))
+        team_max_score = team_scores.index(max(team_scores)) + 1
+        await ctx.send(f'경매가 완료되었습니다. {team_max_score}팀 팀장은 팀과 회의를 진행한 뒤 20인내전채팅 채널에 붙을 팀을 적어주시면 됩니다.')
+        await ctx.send(f'4강전은 남은 점수가 높은 팀이 첫번째 판 진영 선택권을 가집니다. 점수가 동일한 경우 주사위를 굴려 진행해주시면 됩니다.')
+        await ctx.send(f'완료된 경매에서는 되돌리기가 불가능합니다. 이 점 참고바랍니다.')
+        await ctx.send(f'모두 화이팅입니다!')
+        # await ctx.send(get_auction_remain_user(team_user_list))
+        user_list = None
 
 
 def add_auction_team_head(auction_list, auction_text):
