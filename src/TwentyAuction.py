@@ -15,6 +15,77 @@ async def add_user_info(user_info):
     user_list = user_info
 
 
+async def confirm_twenty_recruit(ctx):
+    global user_list
+
+    line_names = ['탑', '정글', '미드', '원딜', '서폿']
+
+    class TwentyMember:
+        def __init__(self, index):
+            self.line = line_names[index]
+            self.members = user_list[index]
+
+    class AuctionView(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=3600)
+            self.members = [TwentyMember(i) for i in range(0, 5)]
+            for members in self.members:
+                self.add_item(EditButton(members))
+
+        async def update_message(self, interaction: discord.Interaction):
+            naejeon_members_result = "\n".join([f"### {member.index}: {member.name}" for member in self.members])
+            await interaction.response.edit_message(content=naejeon_members_result, view=self)
+
+    class EditButton(discord.ui.Button):
+        def __init__(self, members):
+            super().__init__(label=f"{members.line} 명단 수정")
+            self.members = members
+
+        async def callback(self, interaction: discord.Interaction):
+            await interaction.response.send_modal(EditModal(members=self.members))
+
+    class EditModal(discord.ui.Modal):
+        def __init__(self, members):
+            super().__init__(title=f"{members.line} 명단 수정")
+            self.members = members
+
+            self.text_input = discord.ui.TextInput(
+                label=f"제공된 양식에서 벗어나지 않게 주의해주세요.",
+                default=f'{get_members_text(self.members)}'
+            )
+            for member in self.members.members:
+                print(member)
+            self.add_item(self.text_input)
+
+        async def on_submit(self, interaction: discord.Interaction):
+            user_list = edit_user_list(self.text_input.value)
+            await view.update_message(interaction)
+
+    view = AuctionView()
+    members_text = ''
+    for i in range(0, 5):
+        members_text += get_members_text(user_list[i])
+    await ctx.send(content=members_text, view=view)
+
+
+def get_members_text(twenty_members):
+    members = twenty_members.members
+    line = twenty_members.line
+
+    members_text = f'{line}\n'
+
+    for member in members:
+        members_text += f'{member}\n'
+
+    return members_text
+
+
+def edit_user_list(input):
+    global user_list
+
+    return None
+
+
 async def run_twenty_auction(ctx):
     global user_list
 
@@ -51,10 +122,10 @@ async def run_twenty_auction(ctx):
             auction_list = []
             add_auction_team_head(auction_list, auction_text)
             team_user_list = get_auction_team_user(auction_text)
-            await twenty_auction(host, auction_list, team_user_list, ctx)
             await interaction.message.delete()
             if warning_message is not None:
                 await warning_message.delete()
+            await twenty_auction(host, auction_list, team_user_list, ctx)
 
         @discord.ui.button(label="수정하기", style=discord.ButtonStyle.primary)
         async def edit_note_button(self, interaction: discord.Interaction, button: Button):
@@ -314,16 +385,58 @@ def get_auction_warning():
 
     warning_text += f'## 경매 진행 참고사항\n'
     warning_text += f'명단에 변경 사항이 있는 경우 수정하기 버튼을 눌러 수정해주시길 바랍니다.\n'
-    warning_text += f'수정하는 팝업 크기가 작으므로 변경 사항이 많은 경우 메모장에서 변경 후 복사 붙여넣기 하는 것을 추천드립니다.\n'
-    warning_text += f'경매 시작 버튼을 누르면 경매가 진행됩니다.\n'
     warning_text += f'한 번 경매 시작 버튼을 누르면 명단 수정이 불가능합니다.\n'
-    warning_text += f'또한 제공된 양식에서 벗어나거나, 인원이 20명이 아닌 경우 경매 시작이 안되는 점 참고바랍니다.\n'
-    warning_text += f'### 경매 시작을 누른 사람이 진행자가 됩니다. 진행자가 아닌 경우 장난으로 경매 시작 버튼 누르지 마시길 바랍니다.\n'
-    warning_text += f'경매가 시작되면 랜덤으로 한명씩 출력되며, 마이크로 경매를 진행해주시면 됩니다.\n'
+    warning_text += f'## 경매 시작을 누른 사람이 진행자가 됩니다. 진행자가 아닌 경우 장난으로 경매 시작 버튼 누르지 마시길 바랍니다.\n'
+    warning_text += f'진행자 및 팀장을 제외한 모든 인원은 마이크를 꺼주시길 바랍니다.\n'
+    warning_text += f'경매가 시작되면 랜덤으로 한명씩 출력되며, 그 사람에 대하여 경매를 진행해주시면 됩니다.\n'
     warning_text += f'경매 결과에 해당하는 팀 번호 버튼을 누르고, 입력창에 가격을 입력해주시면 됩니다. ex) 1팀 80\n'
-    warning_text += f'### 한 번 반영된 경매 결과는 되돌리기가 불가능합니다. 확실하게 진행해주시길 바랍니다.\n'
     warning_text += f'유찰의 경우 자동으로 유찰 대기열에 추가되며, 경매가 종료된 이후 유찰 대기열로 경매를 추가 진행합니다.\n'
-    warning_text += f'혹여 오류가 발생한 경우, 번거롭더라도 수동으로 추가 진행 부탁드립니다.'
+    warning_text += f'혹여 오류가 발생한 경우, 번거롭더라도 수동으로 추가 진행 부탁드립니다.\n'
+    warning_text += f'경매를 방해하는 행위 및 장난으로 버튼을 누르는 행위에는 경고가 부여될 수 있습니다.'
 
     return warning_text
 
+
+async def add_user_list_by_own(ctx):
+
+    class SelfAuctionView(View):
+        def __init__(self):
+            super().__init__(timeout=21600)
+            self.content = f'수 동 입 력 해 주 세 요'
+
+        @discord.ui.button(label="명단 제출", style=discord.ButtonStyle.green)
+        async def auction_start_button(self, interaction: discord.Interaction, button: Button):
+            await interaction.message.delete()
+            users = self.content.split('\n')
+            await add_users_in_user_list(users)
+            await run_twenty_auction(ctx)
+
+        @discord.ui.button(label="수정하기", style=discord.ButtonStyle.primary)
+        async def edit_note_button(self, interaction: discord.Interaction, button: Button):
+            await interaction.response.send_modal(TwentyAuctionModal(self))
+
+    class TwentyAuctionModal(Modal):
+        def __init__(self, view: SelfAuctionView):
+            super().__init__(title='수동경매', timeout=21600)
+            self.view = view
+            self.note_input = discord.ui.TextInput(
+                label='탑,정글,미드,원딜,서폿 순으로 4명씩 입력해주세요.',
+                style=discord.TextStyle.paragraph,
+                default=self.view.content
+            )
+            self.add_item(self.note_input)
+
+        async def on_submit(self, interaction: discord.Interaction):
+            self.view.content = self.note_input.value
+            await interaction.response.edit_message(content=self.view.content, view=self.view)
+
+    view = SelfAuctionView()
+    await ctx.send(content=view.content, view=view)
+
+async def add_users_in_user_list(users):
+    global user_list
+
+    user_list = [[],[],[],[],[]]
+    for index, user in enumerate(users):
+        line_number = index // 4
+        user_list[line_number].append(user)

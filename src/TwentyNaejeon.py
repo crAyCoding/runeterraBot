@@ -1,8 +1,9 @@
+from datetime import datetime
+
 from discord.ui import Button, View
 from SortFunctions import sort_naejeon_members
 from TierScore import get_user_tier_score
 import discord
-
 
 # 각 라인별 인원 담는 배열
 user_info = None
@@ -49,9 +50,7 @@ async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
 
                 # 같은 라인에 이미 등록했는지 체크, 등록했다면 유저 삭제
                 for i in range(len(user_info[line_number])):
-                    if user_info[line_number][i][0] == username:
-                        original_message = await interaction.channel.fetch_message(user_info[line_number][i][1])
-                        await original_message.delete()
+                    if user_info[line_number][i] == username:
                         del user_info[line_number][i]
                         flag = False
                         break
@@ -61,19 +60,19 @@ async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
                     if i == line_number:
                         continue
                     for j in range(len(user_info[i])):
-                        if user_info[i][j][0] == username:
+                        if user_info[i][j] == username:
                             flag = False
 
                 # 위 두 사항에 해당되지 않는 경우, 해당 라인에 참여시키고 메세지 출력
                 if flag:
-                    message = await interaction.channel.send(f'{username} 님이 {line_name}로 참여합니다!')
-                    user_info[line_number].append((username, message.id))
+                    # message = await interaction.channel.send(f'{username} 님이 {line_name}로 참여합니다!')
+                    user_info[line_number].append(username)
 
                 button.label = f"{line_name} : {len(user_info[line_number])}"
                 # 4표 이상이면 버튼 색 빨간색으로 설정
                 button.style = discord.ButtonStyle.red if len(user_info[line_number]) >= 4 else discord.ButtonStyle.gray
 
-                await interaction.response.edit_message(view=self)
+                await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=naejeon_view)
 
             return callback
 
@@ -81,7 +80,7 @@ async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
     user_info = [[], [], [], [], []]
     naejeon_view = TwentyView()
     naejeon_creator = ctx.author.display_name
-    view_message = await ctx.send(embed=discord.Embed(title=f'20인 내전 {message}'), view=naejeon_view)
+    view_message = await ctx.send(content=get_twenty_recruit_board(message), view=naejeon_view)
     await ctx.send(f'@everyone 20인 내전 {message}')
     await ctx.send(f'이미 모집된 라인(버튼이 빨간색인 경우)에 참여를 원하는 경우, 버튼을 누르시면 자동으로 대기 목록에 추가됩니다.')
 
@@ -158,7 +157,7 @@ def get_team_head_number(user_info: list, naejeon_members: int):
     line_number = 0
 
     for i, users in enumerate(user_info):
-        scores = [get_user_tier_score(user[0]) for user in users[:(naejeon_members // 5)]]
+        scores = [get_user_tier_score(user) for user in users[:(naejeon_members // 5)]]
 
         if scores:
             diff = max(scores) - min(scores)
@@ -183,7 +182,7 @@ def get_team_head_lineup(line_number: int, user_info: list, naejeon_members: int
     participants = []
 
     for i in range(min((naejeon_members // 5), len(user_info[line_number]))):
-        participants.append(user_info[line_number][i][0])
+        participants.append(user_info[line_number][i])
 
     users = sort_naejeon_members(participants)
 
@@ -213,7 +212,7 @@ def get_user_lineup(head_line_number: int, user_info: list, naejeon_members: int
         participants = []
 
         for i in range(min((naejeon_members // 5), len(user_info[line_number]))):
-            participants.append(user_info[line_number][i][0])
+            participants.append(user_info[line_number][i])
 
         users = sort_naejeon_members(participants)
 
@@ -244,7 +243,7 @@ def get_waiting_list(user_info: list, naejeon_members: int):
                 waiting_list += f'{line_names[line_number]}\n'
 
             if i >= (naejeon_members // 5):
-                waiting_list += f'{user_info[line_number][i][0]}\n'
+                waiting_list += f'{user_info[line_number][i]}\n'
 
     if waiting_list == '':
         return waiting_list
@@ -261,6 +260,11 @@ def get_waiting_list(user_info: list, naejeon_members: int):
 def get_naejeon_warning(naejeon_members: int):
     warning_text = ''
 
+    warning_text += f'20인 내전은 경매로 진행됩니다.\n'
+    warning_text += f'자세한 규칙은 20인-40인 내전 규칙 채널에서 확인하실 수 있습니다.\n'
+    warning_text += f'즐거운 {naejeon_members}인 내전 되시길 바랍 니다!!'
+
+    """
     warning_text += f'경매 방식\n\n'
     warning_text += f'1. 입찰은 10 단위로 하되 갱신에는 제한이 없습니다.\n'
     warning_text += f'2. 각 라인별 남은 마지막 매물(유찰포함)은 그 라인이 없는 팀이 무료로 데려갑니다.\n'
@@ -274,22 +278,56 @@ def get_naejeon_warning(naejeon_members: int):
     warning_text += f'3. 경매가 익숙하지 않을 수 있습니다.\n'
     warning_text += f'   그러나 경매결과가 맘에 들지 않는다고 불평하는 자세는 지양해주시기 바랍니다.\n'
     warning_text += f'4. 3번 사항이 관리자 혹은 진행자에게 적발이 될 경우 경고를 부여하겠습니다.\n\n'
-    warning_text += f'즐거운 {naejeon_members}인 내전 되시길 바랍 니다!!'
+    """
 
     return warning_text
+
 
 async def test_add_twenty():
     global user_info
 
-    user_info = [[],[],[],[],[]]
+    user_info = [[], [], [], [], []]
     index = -1
     with open('twentyex.txt', 'r', encoding='utf-8') as file:
         lines = [line.strip() for line in file.readlines()]
         for i in range(20):
             if i % 4 == 0:
                 index += 1
-            user_info[index].append((lines[i], ''))
+            user_info[index].append(lines[i])
 
     from TwentyAuction import add_user_info
 
     await add_user_info(user_info)
+
+
+def get_twenty_recruit_board(message):
+    global user_info
+
+    twenty_recruit_board = ''
+
+    twenty_recruit_board += f'```\n'
+
+    today_text = datetime.now().strftime("%m월 %d일 20인 내전")
+
+    twenty_recruit_board += f'{today_text} {message}\n\n'
+
+    line_names = ['탑', '정글', '미드', '원딜', '서폿']
+
+    for i in range(0, 5):
+        twenty_recruit_board += f'{line_names[i]}\n'
+        for number, user in enumerate(user_info[i]):
+            if number >= 4:
+                twenty_recruit_board += f'(대기) '
+            else:
+                twenty_recruit_board += f'{number+1}. '
+            twenty_recruit_board += f'{user}\n'
+        twenty_recruit_board += f'\n'
+
+    twenty_recruit_board += f'```'
+
+    return twenty_recruit_board
+
+def reset_twenty_naejeon(ctx):
+    global user_info
+
+    user_info = None
