@@ -286,7 +286,7 @@ async def choose_naejeon_team(ctx, teams, flag, members):
                 team_head = teams[0][0]
             else:
                 team_head = teams[1][0]
-            await ctx.send(f'{username}님이 {self.member.name}을 뽑았습니다.')
+            await ctx.send(f'{username}님이 {self.member.name}님을 뽑았습니다.')
             if len(pick_order) == 1:
                 if pick_order[0]:
                     teams[0].append(self.view.members[0].name)
@@ -294,8 +294,8 @@ async def choose_naejeon_team(ctx, teams, flag, members):
                     teams[1].append(self.view.members[0].name)
                 await interaction.message.delete()
                 await ctx.send(get_naejeon_board(teams))
-                await ctx.send(f'밴픽툴은 현재 개발 중입니다. 그 전까지 아래 사이트를 이용하시면 됩니다.')
-                await ctx.send(f'banpick.kr')
+                await ctx.send(f'밴픽은 아래 사이트에서 진행해주시면 됩니다.')
+                await ctx.send(f'https://banpick.kr/')
                 await ctx.send(f'사용자설정 방 제목 : 룬테라 / 비밀번호 : 1234')
                 return
             await interaction.response.edit_message(content=f'{get_naejeon_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.', view=self.view)
