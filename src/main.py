@@ -7,7 +7,7 @@ from discord.ext import commands
 from discord.ui import Modal
 from dotenv import load_dotenv
 
-from TwentyAuction import run_twenty_auction, add_user_list_by_own
+from TwentyAuction import run_twenty_auction, add_user_list_by_own, confirm_twenty_recruit
 from TwentyNaejeon import *
 from FourtyNaejeon import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
 from Naejeon import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
@@ -64,8 +64,8 @@ async def on_ready():
 async def make_naejeon(ctx, *, message = '모이면 바로 시작'):
     global is_naejeon, is_emerald_naejeon, is_twenty_naejeon, is_fourty_naejeon, naejeon_log, emerald_naejeon_log, naejeon_channel
 
-    # await ctx.send("현재 수습 마술사 작업 중입니다. 수동으로 내전 진행해주시면 감사하겠습니다.")
-    # return None
+    await ctx.send("현재 수습 마술사 작업 중입니다. 수동으로 내전 진행해주시면 감사하겠습니다.")
+    return None
 
     channel_id = str(ctx.channel.id)
 
@@ -247,7 +247,7 @@ async def twenty_auction_naejeon(ctx):
     channel_id = str(ctx.channel.id)
 
     if channel_id == TWENTY_NAEJEON_AUCTION_CHANNEL_ID:
-        await run_twenty_auction(ctx)
+        await confirm_twenty_recruit(ctx)
 
 @bot.command(name='수동경매')
 async def test_test(ctx):
@@ -265,7 +265,12 @@ async def test_only_def(ctx):
 
     await make_twenty_naejeon(ctx, '아잉')
 
-    # await test_add_twenty()
+    await test_add_twenty()
+
+@bot.command(name='테스트경매')
+async def test_auction(ctx):
+    await confirm_twenty_recruit(ctx)
+
 
 @bot.command(name='내전초기화')
 async def reset_naejeon(ctx):
@@ -287,7 +292,7 @@ async def reset_naejeon(ctx):
 async def reset_twenty(ctx):
     global is_twenty_naejeon, auction_host
 
-    channel_id = ctx.channel.id
+    channel_id = str(ctx.channel.id)
     user_id = ctx.author.id
 
     if channel_id != TWENTY_CHANNEL_ID:

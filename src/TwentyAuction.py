@@ -31,10 +31,23 @@ async def confirm_twenty_recruit(ctx):
             self.members = [TwentyMember(i) for i in range(0, 5)]
             for members in self.members:
                 self.add_item(EditButton(members))
+            self.add_item(ConfirmButton())
 
         async def update_message(self, interaction: discord.Interaction):
-            naejeon_members_result = "\n".join([f"### {member.index}: {member.name}" for member in self.members])
-            await interaction.response.edit_message(content=naejeon_members_result, view=self)
+            members_text = f'참여 명단\n=========================================\n'
+            for i in range(0, 5):
+                members_text += get_members_text(user_list[i], line_names[i])
+            await interaction.response.edit_message(content=members_text, view=self)
+
+    class ConfirmButton(discord.ui.Button):
+        def __init__(self):
+            super().__init__(label=f"명단 확정",style=discord.ButtonStyle.success)
+
+        async def callback(self, interaction: discord.Interaction):
+            username = interaction.user.display_name
+            await ctx.send(f'{username}님이 명단을 확정지었습니다.')
+            await interaction.message.delete()
+            await run_twenty_auction(ctx)
 
     class EditButton(discord.ui.Button):
         def __init__(self, members):
@@ -49,39 +62,52 @@ async def confirm_twenty_recruit(ctx):
             super().__init__(title=f"{members.line} 명단 수정")
             self.members = members
 
+            default_text = get_members_text(self.members.members, self.members.line)
+
             self.text_input = discord.ui.TextInput(
                 label=f"제공된 양식에서 벗어나지 않게 주의해주세요.",
-                default=f'{get_members_text(self.members)}'
+                style=discord.TextStyle.paragraph,
+                default=default_text
             )
-            for member in self.members.members:
-                print(member)
             self.add_item(self.text_input)
 
         async def on_submit(self, interaction: discord.Interaction):
-            user_list = edit_user_list(self.text_input.value)
+            await edit_user_list(self.text_input.value)
             await view.update_message(interaction)
 
     view = AuctionView()
-    members_text = ''
+    members_text = f'참여 명단\n=========================================\n'
     for i in range(0, 5):
-        members_text += get_members_text(user_list[i])
+        members_text += get_members_text(user_list[i], line_names[i])
     await ctx.send(content=members_text, view=view)
 
 
-def get_members_text(twenty_members):
-    members = twenty_members.members
-    line = twenty_members.line
+def get_members_text(member_list, line):
+    members = member_list
 
     members_text = f'{line}\n'
 
     for member in members:
         members_text += f'{member}\n'
 
+    members_text += f'=========================================\n'
+
     return members_text
 
 
-def edit_user_list(input):
+async def edit_user_list(input_text):
     global user_list
+
+    line_names = ['탑', '정글', '미드', '원딜', '서폿']
+
+    splitted_input = input_text.split('\n')
+    line_name = splitted_input[0]
+    line_index = 0
+    for i, name in enumerate(line_names):
+        if name == line_name:
+            line_index = i
+    for index in range(1, 5):
+        user_list[line_index][index - 1] = splitted_input[index]
 
     return None
 
@@ -127,9 +153,12 @@ async def run_twenty_auction(ctx):
                 await warning_message.delete()
             await twenty_auction(host, auction_list, team_user_list, ctx)
 
-        @discord.ui.button(label="수정하기", style=discord.ButtonStyle.primary)
+        @discord.ui.button(label="명단 수정", style=discord.ButtonStyle.primary)
         async def edit_note_button(self, interaction: discord.Interaction, button: Button):
-            await interaction.response.send_modal(TwentyAuctionModal(self))
+            await interaction.message.delete()
+            if warning_message is not None:
+                await warning_message.delete()
+            await confirm_twenty_recruit(ctx)
 
     class TwentyAuctionModal(Modal):
         def __init__(self, view: NoteView):
@@ -398,7 +427,6 @@ def get_auction_warning():
 
 
 async def add_user_list_by_own(ctx):
-
     class SelfAuctionView(View):
         def __init__(self):
             super().__init__(timeout=21600)
@@ -433,10 +461,11 @@ async def add_user_list_by_own(ctx):
     view = SelfAuctionView()
     await ctx.send(content=view.content, view=view)
 
+
 async def add_users_in_user_list(users):
     global user_list
 
-    user_list = [[],[],[],[],[]]
+    user_list = [[], [], [], [], []]
     for index, user in enumerate(users):
         line_number = index // 4
         user_list[line_number].append(user)

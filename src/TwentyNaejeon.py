@@ -154,9 +154,11 @@ def get_team_head_number(user_info: list, naejeon_members: int):
     # 각 라인별 최대 점수, 최소 점수를 구해서 차이가 가장 적은 라인 반환
 
     min_diff = float('inf')
-    line_number = 0
+    line_number = -1
 
     for i, users in enumerate(user_info):
+        if len(user_info[i]) < 4:
+            continue
         scores = [get_user_tier_score(user) for user in users[:(naejeon_members // 5)]]
 
         if scores:
@@ -303,6 +305,8 @@ async def test_add_twenty():
 def get_twenty_recruit_board(message):
     global user_info
 
+    team_head_number = get_team_head_number(user_info, 20)
+
     twenty_recruit_board = ''
 
     twenty_recruit_board += f'```\n'
@@ -314,7 +318,10 @@ def get_twenty_recruit_board(message):
     line_names = ['탑', '정글', '미드', '원딜', '서폿']
 
     for i in range(0, 5):
-        twenty_recruit_board += f'{line_names[i]}\n'
+        twenty_recruit_board += f'{line_names[i]}'
+        if i == team_head_number:
+            twenty_recruit_board += f' (팀장)'
+        twenty_recruit_board += f'\n'
         for number, user in enumerate(user_info[i]):
             if number >= 4:
                 twenty_recruit_board += f'(대기) '
