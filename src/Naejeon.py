@@ -154,6 +154,13 @@ async def choose_blue_red_naejeon(ctx, team_head_list, members):
 
     selected = random.choice(team_head_list)
     team_head_list.remove(selected)
+    not_selected = team_head_list[0]
+
+    first_random_number = random.randint(2, 1000)
+    second_random_number = random.randint(1, first_random_number - 1)
+
+    await ctx.send(f'{selected}님이 {not_selected}님을 {first_random_number} : {second_random_number}으로 이겼습니다.')
+
 
     class BlueRedView(discord.ui.View):
         def __init__(self):
@@ -206,8 +213,15 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
     selected = selected_team[0]
     if selected == blue_team[0]:
         order_flag = True
+        not_selected = red_team[0]
     else:
         order_flag = False
+        not_selected = blue_team[0]
+
+    first_random_number = random.randint(2, 1000)
+    second_random_number = random.randint(1, first_random_number - 1)
+
+    await ctx.send(f'{selected}님이 {not_selected}님을 {first_random_number} : {second_random_number}으로 이겼습니다.')
 
     class OrderView(discord.ui.View):
         def __init__(self):
@@ -236,7 +250,7 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
             if username != selected:
-                await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=blue_red_view)
+                await interaction.response.edit_message(content=f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',view=order_view)
                 return
             await ctx.send(f'{selected}님이 후뽑입니다.')
             await interaction.message.delete()
@@ -246,16 +260,19 @@ async def choose_order_naejeon(ctx, blue_team, red_team, members):
     order_view = OrderView()
     await ctx.send(content=f'## {selected}님, 뽑는 순서를 정해주세요.', view=order_view)
 
-
 async def choose_naejeon_team(ctx, teams, flag, members):
     await ctx.send(f'=========================================')
 
     pick_order = [flag, not flag, not flag, flag, flag, not flag, not flag, flag]
 
-    if pick_order[0]:
-        team_head = teams[0][0]
-    else:
-        team_head = teams[1][0]
+    def get_team_head(pick_order, teams):
+        return teams[0][0] if pick_order[0] else teams[1][0]
+
+    def add_member_to_team(pick_order, teams, member_name):
+        if pick_order[0]:
+            teams[0].append(member_name)
+        else:
+            teams[1].append(member_name)
 
     class RemainMember:
         def __init__(self, index):
@@ -275,35 +292,33 @@ async def choose_naejeon_team(ctx, teams, flag, members):
 
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
+            team_head = get_team_head(pick_order, teams)
+
+            if username != team_head:
+                await interaction.response.edit_message(content=f'{get_naejeon_board(teams)}\n## {team_head}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.', view=self.view)
+                return
+
             self.view.remove_item(self)
             self.view.members.remove(self.member)
-            if pick_order[0]:
-                teams[0].append(self.member.name)
-            else:
-                teams[1].append(self.member.name)
+            add_member_to_team(pick_order, teams, self.member.name)
             pick_order.pop(0)
-            if pick_order[0]:
-                team_head = teams[0][0]
-            else:
-                team_head = teams[1][0]
+
             await ctx.send(f'{username}님이 {self.member.name}님을 뽑았습니다.')
+
             if len(pick_order) == 1:
-                if pick_order[0]:
-                    teams[0].append(self.view.members[0].name)
-                else:
-                    teams[1].append(self.view.members[0].name)
+                add_member_to_team(pick_order, teams, self.view.members[0].name)
                 await interaction.message.delete()
                 await ctx.send(get_naejeon_board(teams))
                 await ctx.send(f'밴픽은 아래 사이트에서 진행해주시면 됩니다.')
                 await ctx.send(f'https://banpick.kr/')
                 await ctx.send(f'사용자설정 방 제목 : 룬테라 / 비밀번호 : 1234')
                 return
+
+            team_head = get_team_head(pick_order, teams)
             await interaction.response.edit_message(content=f'{get_naejeon_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.', view=self.view)
 
-
-
     choose_naejeon_view = ChooseNaejeonView()
-    await ctx.send(content=f'{get_naejeon_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.', view=choose_naejeon_view)
+    await ctx.send(content=f'{get_naejeon_board(teams)}\n## {get_team_head(pick_order, teams)}님, 팀원을 뽑아주세요.', view=choose_naejeon_view)
 
     # await ctx.send(get_naejeon_board(teams))
 
