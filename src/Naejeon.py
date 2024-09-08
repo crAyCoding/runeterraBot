@@ -1,8 +1,9 @@
+import itertools
 import random
 
 import discord
 
-from SortFunctions import sort_naejeon_members, get_result_sorted_by_tier
+from SortFunctions import sort_naejeon_members, get_result_sorted_by_tier, get_tier_score
 
 naejeon_creator = None
 
@@ -113,6 +114,7 @@ async def handle_naejeon_team(ctx, participants):
             for member in self.members:
                 self.add_item(TeamHeadButton(member))
             self.add_item(StopButton())
+            self.add_item(AutoPlayButton())
 
     class TeamHeadButton(discord.ui.Button):
         def __init__(self, member):
@@ -141,9 +143,73 @@ async def handle_naejeon_team(ctx, participants):
             await ctx.send(f'{username}님이 메모장으로 진행을 선택하셨습니다.')
             await interaction.message.delete()
 
+    class AutoPlayButton(discord.ui.Button):
+        def __init__(self):
+            super().__init__(label=f"수습 마술사에게 팀뽑 맡기기", style=discord.ButtonStyle.primary)
+
+        async def callback(self, interaction: discord.Interaction):
+            await make_auto_team(ctx, participants)
+            await interaction.message.delete()
+
     handle_team_view = HandleTeamView()
     await ctx.send(content=f'## 팀장 두 분의 닉네임 버튼을 눌러주세요.', view=handle_team_view)
 
+async def make_auto_team(ctx, participants):
+    auto_teams = get_auto_team(participants)
+    result_board = get_naejeon_board(auto_teams)
+
+    class AutoTeamView(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=3600)
+            self.add_item(ResumeButton())
+            self.add_item(UndoButton())
+
+    class UndoButton(discord.ui.Button):
+        def __init__(self):
+            super().__init__(label=f"되돌아가기", style=discord.ButtonStyle.red)
+
+        async def callback(self, interaction: discord.Interaction):
+            await interaction.message.delete()
+            await handle_naejeon_team(ctx, participants)
+
+    class ResumeButton(discord.ui.Button):
+        def __init__(self):
+            super().__init__(label=f"이대로 진행", style=discord.ButtonStyle.primary)
+
+        async def callback(self, interaction: discord.Interaction):
+            await interaction.response.edit_message(content=f'{result_board}', view=None)
+
+    auto_team_view = AutoTeamView()
+    await ctx.send(content=f'{result_board}', view=auto_team_view)
+
+def get_auto_team(participants):
+
+    user_result = []
+
+    for participant in participants:
+        user_result.append({'tier_score':get_tier_score(participant),'username':participant})
+
+    best_difference = float('inf')  # 차이를 저장할 변수
+    best_group = None
+
+    for group1_indices in itertools.combinations(range(len(user_result)), 5):
+        group1 = [user_result[i] for i in group1_indices]
+        group2 = [user_result[i] for i in range(len(user_result)) if i not in group1_indices]
+
+        sum_group1 = sum([item['tier_score'] for item in group1])
+        sum_group2 = sum([item['tier_score'] for item in group2])
+
+        difference = abs(sum_group1 - sum_group2)
+
+        if difference < best_difference:
+            best_difference = difference
+            best_group = [[item['username'] for item in group1],
+                          [item['username'] for item in group2]]
+
+    if random.choice([True, False]):
+        best_group[0], best_group[1] = best_group[1], best_group[0]
+
+    return best_group
 
 async def choose_blue_red_naejeon(ctx, team_head_list, members):
 

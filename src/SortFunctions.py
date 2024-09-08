@@ -138,3 +138,46 @@ def get_result_sorted_by_tier(user_result: list):
     result += f'\n=========================================\n'
 
     return result
+
+def get_tier_score(user):
+    splitted_user_profile = user.split('/')
+    user_tier = splitted_user_profile[1].strip()
+    if user_tier[0] == '🔻' or user_tier[0] == '🔺':
+        user_tier = user_tier[1:]
+
+    user_level = user_tier[0].upper()
+
+    # I B S G P E D M GM C
+
+    if user_level == 'C':
+        return int(user_tier[1:]) + 2800
+
+    if user_level == 'G' and user_tier[1].upper() == 'M':
+        return int(user_tier[2:]) + 2800
+
+    if user_level == 'M':
+        return int(user_tier[1:]) + 2800
+
+    if user_level == 'D':
+        return (4 - int(user_tier[1:])) * 100 + 2400
+
+    if user_level == 'E':
+        return (4 - int(user_tier[1:])) * 100 + 2000
+
+    if user_level == 'P':
+        return (4 - int(user_tier[1:])) * 100 + 1600
+
+    if user_level == 'G' and user_tier[1].upper() != 'M':
+        return (4 - int(user_tier[1:])) * 100 + 1200
+
+    if user_level == 'S':
+        return (4 - int(user_tier[1:])) * 100 + 800
+
+    if user_level == 'B':
+        return (4 - int(user_tier[1:])) * 100 + 400
+
+    if user_level == 'I':
+        return (4 - int(user_tier[1:])) * 100
+
+    if user_level == 'U':
+        return 0
