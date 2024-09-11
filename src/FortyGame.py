@@ -1,19 +1,19 @@
 from discord.ui import Button, View
-from TwentyGame import get_naejeon_warning, get_team_head_lineup, get_team_head_number, get_user_lineup, get_waiting_list
+from TwentyGame import get_game_warning, get_team_head_lineup, get_team_head_number, get_user_lineup, get_waiting_list
 import discord
 
 # 각 라인별 인원 담는 배열
 user_info = None
 # 투표 받을 View
-naejeon_view = None
+game_view = None
 # 내전 생성자
-naejeon_creator = None
+game_creator = None
 # 투표를 보낸 메세지를 저장할 변수
 view_message = None
 
 
-async def make_fourty_naejeon(ctx, message='모이면 바로 시작'):
-    global user_info, naejeon_view, naejeon_creator, view_message
+async def make_fourty_game(ctx, message='모이면 바로 시작'):
+    global user_info, game_view, game_creator, view_message
 
     class FourtyView(View):
         def __init__(self):
@@ -70,54 +70,54 @@ async def make_fourty_naejeon(ctx, message='모이면 바로 시작'):
             return callback
 
     user_info = [[], [], [], [], []]
-    naejeon_view = FourtyView()
-    naejeon_creator = ctx.author.display_name
-    view_message = await ctx.send(embed=discord.Embed(title=f'40인 내전 {message}'), view=naejeon_view)
+    game_view = FourtyView()
+    game_creator = ctx.author.display_name
+    view_message = await ctx.send(embed=discord.Embed(title=f'40인 내전 {message}'), view=game_view)
     await ctx.send(f'@everyone 40인 내전 {message}')
 
     return True
 
-async def magam_fourty_naejeon(ctx):
-    global user_info, naejeon_view, naejeon_creator, view_message
+async def magam_fourty_game(ctx):
+    global user_info, game_view, game_creator, view_message
 
-    if naejeon_creator != ctx.author.display_name:
+    if game_creator != ctx.author.display_name:
         return True
 
-    naejeon_members = 40
+    game_members = 40
 
-    team_head_line_number = get_team_head_number(user_info, naejeon_members)
-    waiting_people_list = get_waiting_list(user_info, naejeon_members)
+    team_head_line_number = get_team_head_number(user_info, game_members)
+    waiting_people_list = get_waiting_list(user_info, game_members)
 
-    await ctx.send(get_team_head_lineup(team_head_line_number, user_info, naejeon_members))
-    await ctx.send(get_user_lineup(team_head_line_number, user_info, naejeon_members))
-    await ctx.send(get_naejeon_warning(naejeon_members))
+    await ctx.send(get_team_head_lineup(team_head_line_number, user_info, game_members))
+    await ctx.send(get_user_lineup(team_head_line_number, user_info, game_members))
+    await ctx.send(get_game_warning(game_members))
 
     if waiting_people_list != '':
         await ctx.send(waiting_people_list)
 
-    await ctx.send(f'@everyone {naejeon_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
+    await ctx.send(f'@everyone {game_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
 
     # 초기화
     await view_message.delete()
-    naejeon_creator = None
-    naejeon_view = None
+    game_creator = None
+    game_view = None
     view_message = None
     user_info = None
 
     return False
 
-async def jjong_fourty_naejeon(ctx):
-    global user_info, naejeon_view, view_message, naejeon_creator
+async def jjong_fourty_game(ctx):
+    global user_info, game_view, view_message, game_creator
 
-    if naejeon_creator != ctx.author.display_name:
+    if game_creator != ctx.author.display_name:
         return True
 
     await ctx.send(f'@everyone 40인 내전 쫑')
 
     # 초기화
     await view_message.delete()
-    naejeon_creator = None
-    naejeon_view = None
+    game_creator = None
+    game_view = None
     view_message = None
     user_info = None
 

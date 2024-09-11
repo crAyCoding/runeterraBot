@@ -7,8 +7,8 @@ from discord.ext import commands
 
 from TwentyAuction import add_user_list_by_own, confirm_twenty_recruit
 from TwentyGame import *
-from FortyGame import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
-from NormalGame import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
+from FortyGame import make_fourty_game, magam_fourty_game, jjong_fourty_game
+from NormalGame import make_normal_game, magam_normal_game, end_normal_game
 from MessageCommand import check_message
 
 # GitHub Secrets에서 가져오는 값
@@ -34,19 +34,19 @@ async def make_game(ctx, *, message='모이면 바로 시작'):
     channel_id = str(ctx.channel.id)
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game is None:
-        Runeterra.is_twenty_game = await make_twenty_naejeon(ctx, message)
+        Runeterra.is_twenty_game = await make_twenty_game(ctx, message)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game is None:
-        Runeterra.is_forty_game = await make_fourty_naejeon(ctx, message)
+        Runeterra.is_forty_game = await make_fourty_game(ctx, message)
 
     if channel_id in Runeterra.NORMAL_GAME_CHANNEL_ID_LIST and Runeterra.is_normal_game is None:
         # 내전 채팅 로그 기록 시작, 내전을 연 사람을 로그에 추가
         Runeterra.normal_game_log = [(ctx.author.id, ctx.author.display_name, ctx.message.id)]
         Runeterra.normal_game_channel = channel_id
-        Runeterra.is_normal_game = await make_normal_naejeon(ctx, message)
+        Runeterra.is_normal_game = await make_normal_game(ctx, message)
 
     if channel_id in Runeterra.SPECIAL_GAME_CHANNEL_ID_LIST:
-        await make_normal_naejeon(ctx, message)
+        await make_normal_game(ctx, message)
 
 
 @bot.command(name='마감')
@@ -54,10 +54,10 @@ async def close_game(ctx):
     channel_id = str(ctx.channel.id)
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game:
-        Runeterra.is_twenty_game = await magam_twenty_naejeon(ctx)
+        Runeterra.is_twenty_game = await magam_twenty_game(ctx)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
-        Runeterra.is_forty_game = await magam_fourty_naejeon(ctx)
+        Runeterra.is_forty_game = await magam_fourty_game(ctx)
 
 
 @bot.command(name='쫑')
@@ -65,15 +65,15 @@ async def end_game(ctx):
     channel_id = str(ctx.channel.id)
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game:
-        Runeterra.is_twenty_game = await jjong_twenty_naejeon(ctx)
+        Runeterra.is_twenty_game = await jjong_twenty_game(ctx)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
-        Runeterra.is_forty_game = await jjong_fourty_naejeon(ctx)
+        Runeterra.is_forty_game = await jjong_fourty_game(ctx)
 
     if channel_id == Runeterra.normal_game_channel and Runeterra.is_normal_game:
         Runeterra.normal_game_log = None
         Runeterra.normal_game_channel = None
-        Runeterra.is_normal_game = await jjong_normal_naejeon(ctx)
+        Runeterra.is_normal_game = await end_normal_game(ctx)
 
 
 # 메세지 입력 시 마다 수행
@@ -91,7 +91,7 @@ async def on_message(message):
         normal_game_participants = {user_id: user_name for user_id, user_name, message_id in Runeterra.normal_game_log}
         # 참여자 수가 10명이면 내전 자동 마감
         if len(normal_game_participants) == 10:
-            await magam_normal_naejeon(message.channel, list(Runeterra.normal_game_log.items()))
+            await magam_normal_game(message.channel, list(Runeterra.normal_game_log.items()))
             # 내전 변수 초기화
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None
@@ -161,7 +161,7 @@ async def reset_game(ctx):
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID:
         Runeterra.is_twenty_game = False
         Runeterra.auction_host = None
-        reset_twenty_naejeon(ctx)
+        reset_twenty_game(ctx)
         await ctx.send('20인 내전을 초기화했습니다.')
 
 

@@ -122,14 +122,14 @@ async def run_twenty_auction(ctx):
         await ctx.send(f'문제가 발생했습니다. 수동으로 경매를 진행해주세요.')
         return None
 
-    naejeon_members = 20
+    game_members = 20
 
     # 팀장 라인 번호 찾기
-    team_head_line_number = get_team_head_number(user_list, naejeon_members)
+    team_head_line_number = get_team_head_number(user_list, game_members)
     # 팀장 텍스트
-    team_head_lineup = get_team_head_lineup(team_head_line_number, user_list, naejeon_members)
+    team_head_lineup = get_team_head_lineup(team_head_line_number, user_list, game_members)
     # 팀원 텍스트
-    team_user_lineup = get_user_lineup(team_head_line_number, user_list, naejeon_members)
+    team_user_lineup = get_user_lineup(team_head_line_number, user_list, game_members)
 
     today_title = datetime.now().strftime("%m월 %d일 20인 내전")
     auction_warning = get_auction_warning()

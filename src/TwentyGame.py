@@ -1,16 +1,16 @@
 from datetime import datetime
 
 from discord.ui import Button, View
-from SortFunctions import sort_naejeon_members
+from SortFunctions import sort_game_members
 from TierScore import get_user_tier_score
 import discord
 
 # 각 라인별 인원 담는 배열
 user_info = None
 # 투표 받을 View
-naejeon_view = None
+game_view = None
 # 내전 생성자
-naejeon_creator = None
+game_creator = None
 # 투표를 보낸 메세지를 저장할 변수
 view_message = None
 # 팀장 목록 텍스트
@@ -19,9 +19,9 @@ team_head_lineup = None
 team_user_lineup = None
 
 
-async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
+async def make_twenty_game(ctx, message='모이면 바로 시작'):
     # 20인 내전 모집
-    global user_info, naejeon_view, naejeon_creator, view_message
+    global user_info, game_view, game_creator, view_message
 
     class TwentyView(View):
         def __init__(self):
@@ -72,15 +72,15 @@ async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
                 # 4표 이상이면 버튼 색 빨간색으로 설정
                 button.style = discord.ButtonStyle.red if len(user_info[line_number]) >= 4 else discord.ButtonStyle.gray
 
-                await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=naejeon_view)
+                await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=game_view)
 
             return callback
 
     # 변수 초기화, 새 내전 생성
     user_info = [[], [], [], [], []]
-    naejeon_view = TwentyView()
-    naejeon_creator = ctx.author.display_name
-    view_message = await ctx.send(content=get_twenty_recruit_board(message), view=naejeon_view)
+    game_view = TwentyView()
+    game_creator = ctx.author.display_name
+    view_message = await ctx.send(content=get_twenty_recruit_board(message), view=game_view)
     await ctx.send(f'@everyone 20인 내전 {message}')
     await ctx.send(f'이미 모집된 라인(버튼이 빨간색인 경우)에 참여를 원하는 경우, 버튼을 누르시면 자동으로 대기 목록에 추가됩니다.')
 
@@ -88,68 +88,68 @@ async def make_twenty_naejeon(ctx, message='모이면 바로 시작'):
     return True
 
 
-async def magam_twenty_naejeon(ctx):
+async def magam_twenty_game(ctx):
     # 20인 내전 마감
-    global user_info, naejeon_view, naejeon_creator, view_message
+    global user_info, game_view, game_creator, view_message
 
-    if naejeon_creator != ctx.author.display_name:
+    if game_creator != ctx.author.display_name:
         return True
 
-    naejeon_members = 20
+    game_members = 20
 
     # 팀장 라인 번호 찾기
-    team_head_line_number = get_team_head_number(user_info, naejeon_members)
+    team_head_line_number = get_team_head_number(user_info, game_members)
     # 대기자 리스트 추출
-    waiting_people_list = get_waiting_list(user_info, naejeon_members)
+    waiting_people_list = get_waiting_list(user_info, game_members)
     # 팀장 텍스트
-    team_head_lineup = get_team_head_lineup(team_head_line_number, user_info, naejeon_members)
+    team_head_lineup = get_team_head_lineup(team_head_line_number, user_info, game_members)
     # 팀원 텍스트
-    team_user_lineup = get_user_lineup(team_head_line_number, user_info, naejeon_members)
+    team_user_lineup = get_user_lineup(team_head_line_number, user_info, game_members)
 
     await ctx.send(team_head_lineup)
     await ctx.send(team_user_lineup)
     if waiting_people_list != '':
         await ctx.send(waiting_people_list)
 
-    await ctx.send(get_naejeon_warning(naejeon_members))
+    await ctx.send(get_game_warning(game_members))
 
     from TwentyAuction import add_user_info
 
     await add_user_info(user_info)
 
-    await ctx.send(f'@everyone {naejeon_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
+    await ctx.send(f'@everyone {game_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
     await ctx.send(f'20인내전경매 채널에서 !경매 를 통해 경매를 시작할 수 있습니다.')
 
     # 초기화
     await view_message.delete()
-    naejeon_creator = None
-    naejeon_view = None
+    game_creator = None
+    game_view = None
     view_message = None
     user_info = None
 
     return False
 
 
-async def jjong_twenty_naejeon(ctx):
+async def jjong_twenty_game(ctx):
     # 20인 내전 쫑
-    global user_info, naejeon_view, view_message, naejeon_creator
+    global user_info, game_view, view_message, game_creator
 
-    if naejeon_creator != ctx.author.display_name:
+    if game_creator != ctx.author.display_name:
         return True
 
     await ctx.send(f'@everyone 20인 내전 쫑')
 
     # 초기화
     await view_message.delete()
-    naejeon_creator = None
-    naejeon_view = None
+    game_creator = None
+    game_view = None
     view_message = None
     user_info = None
 
     return False
 
 
-def get_team_head_number(user_info: list, naejeon_members: int):
+def get_team_head_number(user_info: list, game_members: int):
     # 팀장 찾기
     # 각 라인별 최대 점수, 최소 점수를 구해서 차이가 가장 적은 라인 반환
 
@@ -159,7 +159,7 @@ def get_team_head_number(user_info: list, naejeon_members: int):
     for i, users in enumerate(user_info):
         if len(user_info[i]) < 4:
             continue
-        scores = [get_user_tier_score(user) for user in users[:(naejeon_members // 5)]]
+        scores = [get_user_tier_score(user) for user in users[:(game_members // 5)]]
 
         if scores:
             diff = max(scores) - min(scores)
@@ -171,7 +171,7 @@ def get_team_head_number(user_info: list, naejeon_members: int):
     return line_number
 
 
-def get_team_head_lineup(line_number: int, user_info: list, naejeon_members: int):
+def get_team_head_lineup(line_number: int, user_info: list, game_members: int):
     # 팀장 결과 반환
 
     line_names = ['탑', '정글', '미드', '원딜', '서폿']
@@ -183,12 +183,12 @@ def get_team_head_lineup(line_number: int, user_info: list, naejeon_members: int
 
     participants = []
 
-    for i in range(min((naejeon_members // 5), len(user_info[line_number]))):
+    for i in range(min((game_members // 5), len(user_info[line_number]))):
         participants.append(user_info[line_number][i])
 
-    users = sort_naejeon_members(participants)
+    users = sort_game_members(participants)
 
-    for i in range(min((naejeon_members // 5), len(users))):
+    for i in range(min((game_members // 5), len(users))):
         result += f'{i + 1}팀\n'
         user_score = get_user_tier_score(users[i])
         result += f'{users[i]} : {user_score}\n\n'
@@ -198,7 +198,7 @@ def get_team_head_lineup(line_number: int, user_info: list, naejeon_members: int
     return result
 
 
-def get_user_lineup(head_line_number: int, user_info: list, naejeon_members: int):
+def get_user_lineup(head_line_number: int, user_info: list, game_members: int):
     # 팀원 결과 반환
 
     line_names = ['탑', '정글', '미드', '원딜', '서폿']
@@ -213,10 +213,10 @@ def get_user_lineup(head_line_number: int, user_info: list, naejeon_members: int
 
         participants = []
 
-        for i in range(min((naejeon_members // 5), len(user_info[line_number]))):
+        for i in range(min((game_members // 5), len(user_info[line_number]))):
             participants.append(user_info[line_number][i])
 
-        users = sort_naejeon_members(participants)
+        users = sort_game_members(participants)
 
         line_name = line_names[line_number]
 
@@ -232,7 +232,7 @@ def get_user_lineup(head_line_number: int, user_info: list, naejeon_members: int
     return result
 
 
-def get_waiting_list(user_info: list, naejeon_members: int):
+def get_waiting_list(user_info: list, game_members: int):
     # 대기자 명단 반환
 
     line_names = ['탑', '정글', '미드', '원딜', '서폿']
@@ -241,10 +241,10 @@ def get_waiting_list(user_info: list, naejeon_members: int):
 
     for line_number in range(len(user_info)):
         for i in range(len(user_info[line_number])):
-            if i == (naejeon_members // 5):
+            if i == (game_members // 5):
                 waiting_list += f'{line_names[line_number]}\n'
 
-            if i >= (naejeon_members // 5):
+            if i >= (game_members // 5):
                 waiting_list += f'{user_info[line_number][i]}\n'
 
     if waiting_list == '':
@@ -259,12 +259,12 @@ def get_waiting_list(user_info: list, naejeon_members: int):
     return result
 
 
-def get_naejeon_warning(naejeon_members: int):
+def get_game_warning(game_members: int):
     warning_text = ''
 
     warning_text += f'20인 내전은 경매로 진행됩니다.\n'
     warning_text += f'자세한 규칙은 20인-40인 내전 규칙 채널에서 확인하실 수 있습니다.\n'
-    warning_text += f'즐거운 {naejeon_members}인 내전 되시길 바랍 니다!!'
+    warning_text += f'즐거운 {game_members}인 내전 되시길 바랍 니다!!'
 
     """
     warning_text += f'경매 방식\n\n'
@@ -317,7 +317,7 @@ def get_twenty_recruit_board(message):
 
     return twenty_recruit_board
 
-def reset_twenty_naejeon(ctx):
+def reset_twenty_game(ctx):
     global user_info
 
     user_info = None
