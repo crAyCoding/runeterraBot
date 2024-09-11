@@ -1,0 +1,36 @@
+name: Deploy Docker container to EC2
+
+on:
+  push:
+    branches:
+      - master  # master 브랜치에 커밋이 발생할 때 트리거
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+    - name: Deploy to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_IP }} << 'EOF'
+          # 프로젝트 디렉토리로 이동
+          cd /runeterra/
+
+          # GitHub에서 최신 코드를 가져옴
+          git pull origin master
+
+          # Docker 이미지를 빌드하고 컨테이너를 다시 시작
+          docker-compose down
+          docker-compose up -d --build
+        EOF
