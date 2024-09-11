@@ -231,7 +231,7 @@ async def choose_blue_red_game(ctx, team_head_list, members):
     first_random_number = random.randint(2, 6)
     second_random_number = random.randint(1, first_random_number - 1)
 
-    await ctx.send(f'주사위 결과 : {selected}>{first_random_number} : {not_selected}>{second_random_number}')
+    await ctx.send(f'주사위 결과 : {first_random_number} : {second_random_number}')
 
     class BlueRedView(discord.ui.View):
         def __init__(self):
@@ -242,6 +242,9 @@ async def choose_blue_red_game(ctx, team_head_list, members):
 
             blue_button.callback = lambda interaction: self.button_callback(interaction, team_type=True)
             red_button.callback = lambda interaction: self.button_callback(interaction, team_type=False)
+
+            self.add_item(blue_button)
+            self.add_item(red_button)
 
         async def button_callback(self, interaction: discord.Interaction, team_type: bool):
             username = interaction.user.display_name
@@ -271,15 +274,13 @@ async def choose_order_game(ctx, blue_team, red_team, members):
     selected = selected_team[0]
     if selected == blue_team[0]:
         order_flag = True
-        not_selected = red_team[0]
     else:
         order_flag = False
-        not_selected = blue_team[0]
 
     first_random_number = random.randint(2, 6)
     second_random_number = random.randint(1, first_random_number - 1)
 
-    await ctx.send(f'주사위 결과 : {selected}>{first_random_number} : {not_selected}>{second_random_number}')
+    await ctx.send(f'주사위 결과 : {first_random_number} : {second_random_number}')
 
     class OrderView(discord.ui.View):
         def __init__(self):
@@ -290,6 +291,9 @@ async def choose_order_game(ctx, blue_team, red_team, members):
 
             first_pick_button.callback = lambda interaction: self.button_callback(interaction, pick_type=True)
             second_pick_button.callback = lambda interaction: self.button_callback(interaction, pick_type=False)
+
+            self.add_item(first_pick_button)
+            self.add_item(second_pick_button)
 
         async def button_callback(self, interaction: discord.Interaction, pick_type):
             username = interaction.user.display_name
