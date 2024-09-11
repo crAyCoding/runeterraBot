@@ -35,13 +35,13 @@ async def make_game(ctx, *, message='모이면 바로 시작'):
     normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
                               Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
 
-    if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game is None:
+    if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and not Runeterra.is_twenty_game:
         Runeterra.is_twenty_game = await make_twenty_game(ctx, message)
 
-    if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game is None:
+    if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and not Runeterra.is_forty_game:
         Runeterra.is_forty_game = await make_fourty_game(ctx, message)
 
-    if channel_id in normal_channel_id_list and Runeterra.is_normal_game is None:
+    if channel_id in normal_channel_id_list and not Runeterra.is_normal_game:
         # 내전 채팅 로그 기록 시작, 내전을 연 사람을 로그에 추가
         Runeterra.normal_game_log = [(ctx.author.id, ctx.author.display_name, ctx.message.id)]
         Runeterra.normal_game_channel = channel_id
