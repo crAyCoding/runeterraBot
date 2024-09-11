@@ -1,3 +1,5 @@
+import os
+
 import Runeterra
 
 from discord import Intents
@@ -8,6 +10,9 @@ from TwentyGame import *
 from FortyGame import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
 from NormalGame import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
 from MessageCommand import check_message
+
+# GitHub Secrets에서 가져오는 값
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 # 디스코드 봇 설정
 intents: Intents = Intents.default()
