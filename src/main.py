@@ -1,22 +1,15 @@
-from typing import Final
-import os
 import Runeterra
 
 from discord import Intents
 from discord.ext import commands
-from dotenv import load_dotenv
 
 from TwentyAuction import add_user_list_by_own, confirm_twenty_recruit
-from TwentyNaejeon import *
-from FourtyNaejeon import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
-from Naejeon import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
-from MessageCommand import checkMessage
+from TwentyGame import *
+from FortyGame import make_fourty_naejeon, magam_fourty_naejeon, jjong_fourty_naejeon
+from NormalGame import make_normal_naejeon, magam_normal_naejeon, jjong_normal_naejeon
+from MessageCommand import check_message
 
-# env 파일 변수 불러오기
-load_dotenv()
-TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
-
-# 디스코드 봇 설정 (뭔지 모름 ㅇㅅㅇ)
+# 디스코드 봇 설정
 intents: Intents = Intents.default()
 intents.message_content = True
 
@@ -59,7 +52,7 @@ async def close_game(ctx):
         Runeterra.is_twenty_game = await magam_twenty_naejeon(ctx)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
-        Runeterra.is_forty_game = await make_fourty_naejeon(ctx)
+        Runeterra.is_forty_game = await magam_fourty_naejeon(ctx)
 
 
 @bot.command(name='쫑')
@@ -99,7 +92,7 @@ async def on_message(message):
             Runeterra.normal_game_channel = None
             Runeterra.is_normal_game = False
 
-    msg = checkMessage(message.content)
+    msg = check_message(message.content)
 
     # 명령어 체크
     if msg:

@@ -1,7 +1,4 @@
-import random
-
-
-def checkMessage(message: str):
+def check_message(message: str):
 
     if len(message) < 1:
         return None

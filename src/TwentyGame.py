@@ -285,23 +285,6 @@ def get_naejeon_warning(naejeon_members: int):
     return warning_text
 
 
-async def test_add_twenty():
-    global user_info
-
-    user_info = [[], [], [], [], []]
-    index = -1
-    with open('twentyex.txt', 'r', encoding='utf-8') as file:
-        lines = [line.strip() for line in file.readlines()]
-        for i in range(20):
-            if i % 4 == 0:
-                index += 1
-            user_info[index].append(lines[i])
-
-    from TwentyAuction import add_user_info
-
-    await add_user_info(user_info)
-
-
 def get_twenty_recruit_board(message):
     global user_info
 

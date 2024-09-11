@@ -4,7 +4,7 @@ import random
 import discord
 from discord.ui import Button, View, Modal
 
-from TwentyNaejeon import get_team_head_number, get_team_head_lineup, get_user_lineup
+from TwentyGame import get_team_head_number, get_team_head_lineup, get_user_lineup
 
 user_list = None
 
