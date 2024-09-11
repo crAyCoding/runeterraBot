@@ -39,5 +39,7 @@ jobs:
         
           docker build -t runeterra-image .
         
-          docker run -d -p 80:80 --name runeterra-container runeterra-image
+          docker run -d -p 80:80 --name runeterra-container \
+            -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} \
+            runeterra-image
         EOF
