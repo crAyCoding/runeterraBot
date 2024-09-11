@@ -7,6 +7,9 @@ normal_game_log = None
 # 일반 내전이 진행 중인 채널
 normal_game_channel = None
 
+# 일반 내전 모집 호스트
+normal_game_creator_id = None
+
 # 20인 내전이 진행 중인지 확인
 is_twenty_game = False
 

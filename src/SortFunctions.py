@@ -1,4 +1,4 @@
-def sort_naejeon_members(participants: list):
+def sort_game_members(participants: list):
     # 티어별로 정리
 
     challenger_users = list()
