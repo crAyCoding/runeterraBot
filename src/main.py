@@ -32,6 +32,8 @@ async def make_game(ctx, *, message='모이면 바로 시작'):
     # return None
 
     channel_id = str(ctx.channel.id)
+    normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
+                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game is None:
         Runeterra.is_twenty_game = await make_twenty_game(ctx, message)
@@ -39,7 +41,7 @@ async def make_game(ctx, *, message='모이면 바로 시작'):
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game is None:
         Runeterra.is_forty_game = await make_fourty_game(ctx, message)
 
-    if channel_id in Runeterra.NORMAL_GAME_CHANNEL_ID_LIST and Runeterra.is_normal_game is None:
+    if channel_id in normal_channel_id_list and Runeterra.is_normal_game is None:
         # 내전 채팅 로그 기록 시작, 내전을 연 사람을 로그에 추가
         Runeterra.normal_game_log = [(ctx.author.id, ctx.author.display_name, ctx.message.id)]
         Runeterra.normal_game_channel = channel_id
@@ -64,13 +66,16 @@ async def close_game(ctx):
 async def end_game(ctx):
     channel_id = str(ctx.channel.id)
 
+    normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
+                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
+
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game:
         Runeterra.is_twenty_game = await jjong_twenty_game(ctx)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
         Runeterra.is_forty_game = await jjong_fourty_game(ctx)
 
-    if channel_id == Runeterra.normal_game_channel and Runeterra.is_normal_game:
+    if channel_id == normal_channel_id_list and Runeterra.is_normal_game:
         Runeterra.normal_game_log = None
         Runeterra.normal_game_channel = None
         Runeterra.is_normal_game = await end_normal_game(ctx)
