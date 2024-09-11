@@ -75,7 +75,7 @@ async def end_game(ctx):
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
         Runeterra.is_forty_game = await jjong_fourty_game(ctx)
 
-    if channel_id == normal_channel_id_list and Runeterra.is_normal_game:
+    if channel_id in normal_channel_id_list and Runeterra.is_normal_game:
         Runeterra.normal_game_log = None
         Runeterra.normal_game_channel = None
         Runeterra.is_normal_game = await end_normal_game(ctx)
