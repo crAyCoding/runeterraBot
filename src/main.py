@@ -96,7 +96,7 @@ async def on_message(message):
         normal_game_participants = {user_id: user_name for user_id, user_name, message_id in Runeterra.normal_game_log}
         # 참여자 수가 10명이면 내전 자동 마감
         if len(normal_game_participants) == 10:
-            await magam_normal_game(message.channel, list(Runeterra.normal_game_log.items()))
+            await magam_normal_game(message.channel, list(normal_game_participants.values()))
             # 내전 변수 초기화
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None
