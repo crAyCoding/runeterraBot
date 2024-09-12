@@ -153,11 +153,14 @@ async def reset_game(ctx):
     channel_id = str(ctx.channel.id)
     user_id = str(ctx.author.id)
 
+    normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
+                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
+
     if user_id != Runeterra.SORCERER:
         await ctx.send('개발자만 가능해요~ 안돼요~ 돌아가요~')
         return None
 
-    if channel_id in Runeterra.NORMAL_GAME_CHANNEL_ID_LIST:
+    if channel_id in normal_channel_id_list:
         Runeterra.is_normal_game = False
         Runeterra.normal_game_log = None
         Runeterra.normal_game_channel = None
