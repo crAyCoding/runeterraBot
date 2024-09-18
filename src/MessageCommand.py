@@ -1,5 +1,4 @@
 def check_message(message: str):
-
     if len(message) < 1:
         return None
 
@@ -9,6 +8,14 @@ def check_message(message: str):
     msg = message[1:]
 
     if msg == '미코피' or msg == '35P' or msg == '35p':
-        return ':regional_indicator_s: :regional_indicator_s: :regional_indicator_i: :regional_indicator_p: :regional_indicator_d: :regional_indicator_u: :regional_indicator_c: :regional_indicator_k: '
+        mkp_text = '■■■■   ■■■■   ■   ■■■■   ■■■　   ■　　■   ■■■■   ■　　■\n'
+        mkp_text += '■　　　   ■　　　   ■   ■　　■   ■　　■   ■　　■   ■　　　   ■　■\n'
+        mkp_text += '■■■■   ■■■■   ■   ■■■■   ■　　■   ■　　■   ■　　　   ■■\n'
+        mkp_text += '　　　■   　　　■   ■   ■　　　   ■　　■   ■　　■   ■　　　   ■　■\n'
+        mkp_text += '■■■■   ■■■■   ■   ■　　　   ■■■　   ■■■■   ■■■■   ■　　■'
+        return mkp_text
+
+    if msg == '사냥꾼':
+        return '20인내전 9연승 중'
 
     return None
