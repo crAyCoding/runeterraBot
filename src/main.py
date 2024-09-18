@@ -8,7 +8,7 @@ from discord.ext import commands
 from TwentyAuction import add_user_list_by_own, confirm_twenty_recruit
 from TwentyGame import *
 from FortyGame import make_fourty_game, magam_fourty_game, jjong_fourty_game
-from NormalGame import make_normal_game, magam_normal_game, end_normal_game
+from NormalGame import make_normal_game, close_normal_game, end_normal_game
 from MessageCommand import check_message
 
 # GitHub Secrets에서 가져오는 값
@@ -96,7 +96,7 @@ async def on_message(message):
         normal_game_participants = {user_id: user_name for user_id, user_name, message_id in Runeterra.normal_game_log}
         # 참여자 수가 10명이면 내전 자동 마감
         if len(normal_game_participants) == 10:
-            await magam_normal_game(message.channel, list(normal_game_participants.values()))
+            await close_normal_game(message.channel, list(normal_game_participants.values()))
             # 내전 변수 초기화
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None

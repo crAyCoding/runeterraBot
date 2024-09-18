@@ -16,6 +16,9 @@ def check_message(message: str):
         return mkp_text
 
     if msg == '사냥꾼':
-        return '20인 내전의 신'
+        return '냥냥'
+
+    if msg == '이토빙':
+        return '마술사 전용 유미'
 
     return None
