@@ -1,11 +1,8 @@
+import Runeterra
 import itertools
 import random
-
-from discord.ui import Button
-
-import Runeterra
 import discord
-
+from discord.ui import Button
 from SortFunctions import sort_game_members, get_result_sorted_by_tier, get_tier_score
 
 
@@ -17,7 +14,7 @@ async def make_normal_game(ctx, message='3판 2선 모이면 바로 시작'):
     return True
 
 
-async def magam_normal_game(ctx, participants):
+async def close_normal_game(ctx, participants):
     # 일반 내전 마감
 
     class GameMember:
@@ -47,7 +44,7 @@ async def magam_normal_game(ctx, participants):
 
     class EditModal(discord.ui.Modal):
         def __init__(self, member):
-            super().__init__(title=f"{member.index}번 닉네임 수정")
+            super().__init__(timeout=3600, title=f"{member.index}번 닉네임 수정")
             self.member = member
 
             self.text_input = discord.ui.TextInput(
@@ -98,10 +95,9 @@ async def end_normal_game(ctx):
 
 
 async def handle_game_team(ctx, participants, game_host):
-
     team_head_list = []
 
-    class gameMember:
+    class GameMember:
         def __init__(self, index):
             self.index = index + 1
             self.name = participants[index]
@@ -109,10 +105,11 @@ async def handle_game_team(ctx, participants, game_host):
     class HandleTeamView(discord.ui.View):
         def __init__(self):
             super().__init__(timeout=3600)
-            self.members = [gameMember(i) for i in range(0, 10)]
+            self.members = [GameMember(i) for i in range(0, 10)]
             for member in self.members:
                 self.add_item(TeamHeadButton(member))
             self.add_item(StopButton())
+            self.add_item(UndoButton())
             # 수습 마술사 팀뽑 버튼 (일시 비활성화)
             # self.add_item(AutoPlayButton())
 
@@ -124,10 +121,11 @@ async def handle_game_team(ctx, participants, game_host):
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
             if username != game_host:
-                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.', view=self.view)
+                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
+                                                        view=self.view)
                 return
             team_head_list.append(self.member.name)
-            await ctx.send(f'{username}님이 버튼을 눌렀습니다. {self.member.name}님이 팀장입니다.')
+            await ctx.send(f'{self.member.name}님이 팀장입니다.')
             self.view.remove_item(self)
             self.view.members.remove(self.member)
             if len(team_head_list) == 2:
@@ -143,7 +141,11 @@ async def handle_game_team(ctx, participants, game_host):
 
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
-            await ctx.send(f'{username}님이 메모장으로 진행을 선택하셨습니다.')
+            if username != game_host:
+                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
+                                                        view=self.view)
+                return
+            await ctx.send(f'메모장으로 진행합니다.')
             await interaction.message.delete()
 
     class AutoPlayButton(discord.ui.Button):
@@ -153,6 +155,19 @@ async def handle_game_team(ctx, participants, game_host):
         async def callback(self, interaction: discord.Interaction):
             await make_auto_team(ctx, participants)
             await interaction.message.delete()
+
+    class UndoButton(discord.ui.Button):
+        def __init__(self):
+            super().__init__(label=f"명단 수정하기", style=discord.ButtonStyle.primary)
+
+        async def callback(self, interaction: discord.Interaction):
+            username = interaction.user.display_name
+            if username != game_host:
+                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
+                                                        view=self.view)
+                return
+            await interaction.message.delete()
+            await close_normal_game(ctx, participants)
 
     handle_team_view = HandleTeamView()
     await ctx.send(content=f'## {game_host}님, 팀장 두 분의 닉네임 버튼을 눌러주세요.', view=handle_team_view)
@@ -188,11 +203,10 @@ async def make_auto_team(ctx, participants):
 
 
 def get_auto_team(participants):
-
     user_result = []
 
     for participant in participants:
-        user_result.append({'tier_score':get_tier_score(participant),'username':participant})
+        user_result.append({'tier_score': get_tier_score(participant), 'username': participant})
 
     best_difference = float('inf')  # 차이를 저장할 변수
     best_group = None
@@ -218,20 +232,24 @@ def get_auto_team(participants):
 
 
 async def choose_blue_red_game(ctx, team_head_list, members):
-
     await ctx.send(f'=========================================')
     # 블루팀 레드팀 고르기
     blue_team = []
     red_team = []
 
-    selected = random.choice(team_head_list)
-    team_head_list.remove(selected)
-    not_selected = team_head_list[0]
+    team_head1 = team_head_list[0]
+    team_head2 = team_head_list[1]
 
-    first_random_number = random.randint(2, 6)
-    second_random_number = random.randint(1, first_random_number - 1)
+    while True:
+        random_number1, random_number2 = random.randint(1, 6), random.randint(1, 6)
 
-    await ctx.send(f'주사위 결과 : {first_random_number} : {second_random_number}')
+        await ctx.send(f'{Runeterra.get_nickname(team_head1)} > {random_number1} :'
+                       f' {random_number2} < {Runeterra.get_nickname(team_head2)}')
+
+        if random_number1 != random_number2:
+            selected = team_head1 if random_number1 > random_number2 else team_head2
+            not_selected = team_head2 if selected == team_head_list[0] else team_head1
+            break
 
     class BlueRedView(discord.ui.View):
         def __init__(self):
@@ -264,23 +282,21 @@ async def choose_blue_red_game(ctx, team_head_list, members):
 
 
 async def choose_order_game(ctx, blue_team, red_team, members):
-
     await ctx.send(f'=========================================')
     # 선뽑 후뽑 고르기
     teams = [blue_team, red_team]
     order_flag = True
 
-    selected_team = random.choice(teams)
-    selected = selected_team[0]
-    if selected == blue_team[0]:
-        order_flag = True
-    else:
-        order_flag = False
+    while True:
+        random_number1, random_number2 = random.randint(1, 6), random.randint(1, 6)
 
-    first_random_number = random.randint(2, 6)
-    second_random_number = random.randint(1, first_random_number - 1)
+        await ctx.send(f'{Runeterra.get_nickname(blue_team[0])} > {random_number1} :'
+                       f' {random_number2} < {Runeterra.get_nickname(red_team[0])}')
 
-    await ctx.send(f'주사위 결과 : {first_random_number} : {second_random_number}')
+        if random_number1 != random_number2:
+            selected = blue_team[0] if random_number1 > random_number2 else red_team[0]
+            not_selected = red_team[0] if selected == blue_team[0] else blue_team[0]
+            break
 
     class OrderView(discord.ui.View):
         def __init__(self):
@@ -310,6 +326,7 @@ async def choose_order_game(ctx, blue_team, red_team, members):
     order_view = OrderView()
     await ctx.send(content=f'## {selected}님, 뽑는 순서를 정해주세요.', view=order_view)
 
+
 async def choose_game_team(ctx, teams, flag, members):
     await ctx.send(f'=========================================')
 
@@ -328,7 +345,7 @@ async def choose_game_team(ctx, teams, flag, members):
         def __init__(self, index):
             self.name = members[index].name
 
-    class ChoosegameView(discord.ui.View):
+    class ChooseGameView(discord.ui.View):
         def __init__(self):
             super().__init__()
             self.members = [RemainMember(i) for i in range(0, 8)]
@@ -345,7 +362,9 @@ async def choose_game_team(ctx, teams, flag, members):
             team_head = get_team_head(pick_order, teams)
 
             if username != team_head:
-                await interaction.response.edit_message(content=f'{get_game_board(teams)}\n## {team_head}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.', view=self.view)
+                await interaction.response.edit_message(
+                    content=f'{get_game_board(teams)}\n## {team_head}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
+                    view=self.view)
                 return
 
             self.view.remove_item(self)
@@ -365,10 +384,12 @@ async def choose_game_team(ctx, teams, flag, members):
                 return
 
             team_head = get_team_head(pick_order, teams)
-            await interaction.response.edit_message(content=f'{get_game_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.', view=self.view)
+            await interaction.response.edit_message(content=f'{get_game_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.',
+                                                    view=self.view)
 
-    choose_game_view = ChoosegameView()
-    await ctx.send(content=f'{get_game_board(teams)}\n## {get_team_head(pick_order, teams)}님, 팀원을 뽑아주세요.', view=choose_game_view)
+    choose_game_view = ChooseGameView()
+    await ctx.send(content=f'{get_game_board(teams)}\n## {get_team_head(pick_order, teams)}님, 팀원을 뽑아주세요.',
+                   view=choose_game_view)
 
     # await ctx.send(get_game_board(teams))
 
