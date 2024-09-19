@@ -6,7 +6,6 @@ from discord import Intents
 from discord.ext import commands
 
 from TwentyAuction import add_user_list_by_own, confirm_twenty_recruit
-from FortyAuction import confirm_forty_recruit
 from TwentyGame import *
 from FortyGame import make_fourty_game, magam_fourty_game, jjong_fourty_game
 from NormalGame import make_normal_game, close_normal_game, end_normal_game
@@ -140,9 +139,6 @@ async def twenty_auction(ctx):
 
     if channel_id == Runeterra.TWENTY_AUCTION_CHANNEL_ID:
         await confirm_twenty_recruit(ctx)
-
-    if channel_id == Runeterra.FORTY_AUCTION_CHANNEL_ID:
-        await confirm_forty_recruit(ctx)
 
 
 @bot.command(name='수동경매')
