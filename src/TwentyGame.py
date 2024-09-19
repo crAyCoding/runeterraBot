@@ -1,9 +1,9 @@
 from datetime import datetime
-
 from discord.ui import Button, View
 from SortFunctions import sort_game_members
 from TierScore import get_user_tier_score
 import discord
+import Runeterra
 
 # 각 라인별 인원 담는 배열
 user_info = None
@@ -21,66 +21,61 @@ team_user_lineup = None
 
 async def make_twenty_game(ctx, message='모이면 바로 시작'):
     # 20인 내전 모집
-    global user_info, game_view, game_creator, view_message
+
+    def create_callback(line_name, button):
+        # 버튼 상호작용 함수
+
+        async def callback(interaction: discord.Interaction):
+            user = Runeterra.DiscordUser(interaction.user.id, interaction.user.display_name)
+            is_valid_push = True
+
+            # 같은 라인에 이미 등록했는지 체크, 등록했다면 유저 삭제
+            for line_user in Runeterra.twenty_user_list[line_name]:
+                if user.id == line_user.id:
+                    Runeterra.twenty_user_list[line_name].remove(line_user)
+                    is_valid_push = False
+                    break
+
+            # 다른 라인에 등록했는지 체크, 등록되어 있으면 상호작용 무시
+            for line_users in Runeterra.twenty_user_list.values():
+                for line_user in line_users:
+                    if user.id == line_user.id:
+                        is_valid_push = False
+                        break
+
+            # 위 두 사항에 해당되지 않는 경우, 해당 라인에 참여시키고 메세지 출력
+            if is_valid_push:
+                Runeterra.twenty_user_list[line_name].append(user)
+
+            button.label = f"{line_name} : {len(Runeterra.twenty_user_list[line_name])}"
+            # 4표 이상이면 버튼 색 빨간색으로 설정
+            button.style = discord.ButtonStyle.red \
+                if len(Runeterra.twenty_user_list[line_name]) >= 4 else discord.ButtonStyle.gray
+
+            await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=game_view)
+
+        return callback
 
     class TwentyView(View):
         def __init__(self):
-            # 투표 제한 시간 설정, 20인 내전은 6시간으로 설정
-            super().__init__(timeout=21600)
-
-            self.line_names = ['탑', '정글', '미드', '원딜', '서폿']
+            # 투표 제한 시간 설정, 20인 내전은 12시간으로 설정
+            super().__init__(timeout=43200)
 
             self.buttons = [
                 Button(label=f'{line_name} : 0', style=discord.ButtonStyle.gray)
-                for line_name in self.line_names
+                for line_name in Runeterra.line_names
             ]
 
-            for i, button in enumerate(self.buttons):
-                button.callback = self.create_callback(i, button)
+            for line_number, button in enumerate(self.buttons):
+                button.callback = create_callback(Runeterra.line_names[line_number], button)
 
                 self.add_item(button)
 
-        def create_callback(self, line_number, button):
-            # 버튼 상호작용 함수
-            line_name = self.line_names[line_number]
-
-            async def callback(interaction: discord.Interaction):
-                username = interaction.user.display_name
-                flag = True
-
-                # 같은 라인에 이미 등록했는지 체크, 등록했다면 유저 삭제
-                for i in range(len(user_info[line_number])):
-                    if user_info[line_number][i] == username:
-                        del user_info[line_number][i]
-                        flag = False
-                        break
-
-                # 다른 라인에 등록했는지 체크, 등록되어 있으면 상호작용 무시
-                for i in range(len(user_info)):
-                    if i == line_number:
-                        continue
-                    for j in range(len(user_info[i])):
-                        if user_info[i][j] == username:
-                            flag = False
-
-                # 위 두 사항에 해당되지 않는 경우, 해당 라인에 참여시키고 메세지 출력
-                if flag:
-                    # message = await interaction.channel.send(f'{username} 님이 {line_name}로 참여합니다!')
-                    user_info[line_number].append(username)
-
-                button.label = f"{line_name} : {len(user_info[line_number])}"
-                # 4표 이상이면 버튼 색 빨간색으로 설정
-                button.style = discord.ButtonStyle.red if len(user_info[line_number]) >= 4 else discord.ButtonStyle.gray
-
-                await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=game_view)
-
-            return callback
-
     # 변수 초기화, 새 내전 생성
-    user_info = [[], [], [], [], []]
-    game_view = TwentyView()
-    game_creator = ctx.author.display_name
-    view_message = await ctx.send(content=get_twenty_recruit_board(message), view=game_view)
+    Runeterra.twenty_user_list = {line_name: [] for line_name in Runeterra.line_names}
+    Runeterra.twenty_game_view = TwentyView()
+    Runeterra.twenty_host = ctx.author.id
+    await ctx.send(content=get_twenty_recruit_board(message), view=game_view)
     await ctx.send(f'@everyone 20인 내전 {message}')
     await ctx.send(f'이미 모집된 라인(버튼이 빨간색인 경우)에 참여를 원하는 경우, 버튼을 누르시면 자동으로 대기 목록에 추가됩니다.')
 
@@ -88,23 +83,22 @@ async def make_twenty_game(ctx, message='모이면 바로 시작'):
     return True
 
 
-async def magam_twenty_game(ctx):
+async def close_twenty_game(ctx):
     # 20인 내전 마감
-    global user_info, game_view, game_creator, view_message
 
-    if game_creator != ctx.author.display_name:
+    if Runeterra.twenty_host != ctx.author.id:
         return True
 
     game_members = 20
 
     # 팀장 라인 번호 찾기
-    team_head_line_number = get_team_head_number(user_info, game_members)
+    team_head_line_number = get_team_head_number(game_members)
     # 대기자 리스트 추출
-    waiting_people_list = get_waiting_list(user_info, game_members)
+    waiting_people_list = get_waiting_list(game_members)
     # 팀장 텍스트
-    team_head_lineup = get_team_head_lineup(team_head_line_number, user_info, game_members)
+    team_head_lineup = get_team_head_lineup(team_head_line_number, game_members)
     # 팀원 텍스트
-    team_user_lineup = get_user_lineup(team_head_line_number, user_info, game_members)
+    team_user_lineup = get_user_lineup(team_head_line_number, game_members)
 
     await ctx.send(team_head_lineup)
     await ctx.send(team_user_lineup)
@@ -113,103 +107,97 @@ async def magam_twenty_game(ctx):
 
     await ctx.send(get_game_warning(game_members))
 
-    from TwentyAuction import add_user_info
-
-    await add_user_info(user_info)
-
     await ctx.send(f'@everyone {game_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
     await ctx.send(f'20인내전경매 채널에서 !경매 를 통해 경매를 시작할 수 있습니다.')
 
     # 초기화
-    await view_message.delete()
-    game_creator = None
-    game_view = None
-    view_message = None
-    user_info = None
+    Runeterra.twenty_user_list = None
+    Runeterra.twenty_host = None
+    Runeterra.twenty_game_view = None
 
     return False
 
 
-async def jjong_twenty_game(ctx):
+async def end_twenty_game(ctx):
     # 20인 내전 쫑
-    global user_info, game_view, view_message, game_creator
 
-    if game_creator != ctx.author.display_name:
+    if Runeterra.twenty_host != ctx.author.id:
         return True
 
     await ctx.send(f'@everyone 20인 내전 쫑')
 
     # 초기화
-    await view_message.delete()
-    game_creator = None
-    game_view = None
-    view_message = None
-    user_info = None
+    Runeterra.twenty_user_list = None
+    Runeterra.twenty_host = None
+    Runeterra.twenty_game_view = None
 
     return False
 
 
-def get_team_head_number(user_info: list, game_members: int):
+def get_team_head_number(game_members: int):
     # 팀장 찾기
     # 각 라인별 최대 점수, 최소 점수를 구해서 차이가 가장 적은 라인 반환
 
     min_diff = float('inf')
     line_number = -1
 
-    for i, users in enumerate(user_info):
-        if len(user_info[i]) < 4:
+    for index, (line_name, user_list) in enumerate(Runeterra.twenty_user_list.items()
+                                                   if game_members == 20 else Runeterra.forty_user_list.items()):
+        if len(user_list) < (game_members // 5):
             continue
-        scores = [get_user_tier_score(user) for user in users[:(game_members // 5)]]
+        scores = [get_user_tier_score(user) for user in user_list[:(game_members // 5)]]
 
         if scores:
             diff = max(scores) - min(scores)
 
             if 0 <= diff < min_diff:
                 min_diff = diff
-                line_number = i
+                line_number = index
 
     return line_number
 
 
-def get_team_head_lineup(line_number: int, user_info: list, game_members: int):
+def get_team_head_lineup(head_line_number: int, game_members: int):
     # 팀장 결과 반환
 
-    line_names = ['탑', '정글', '미드', '원딜', '서폿']
-    line_name = line_names[line_number]
+    line_name = Runeterra.line_names[head_line_number]
 
     result = ''
     result += f'팀장 : {line_name}\n'
     result += f'=========================================\n\n'
 
-    participants = []
+    user_list = Runeterra.twenty_user_list if game_members == 20 else Runeterra.forty_user_list
 
-    for i in range(min((game_members // 5), len(user_info[line_number]))):
-        participants.append(user_info[line_number][i])
+    participants = [user.nickname for user in user_list[line_name][:(game_members // 5)]]
 
     users = sort_game_members(participants)
 
-    for i in range(min((game_members // 5), len(users))):
+    for i, user_nickname in enumerate(users):
         result += f'{i + 1}팀\n'
-        user_score = get_user_tier_score(users[i])
-        result += f'{users[i]} : {user_score}\n\n'
+        user_score = get_user_tier_score(user_nickname)
+        result += f'{user_nickname} : {user_score}\n\n'
 
     result += f'=========================================\n\n\n'
 
     return result
 
 
-def get_user_lineup(head_line_number: int, user_info: list, game_members: int):
-    # 팀원 결과 반환
+# 여기부터 작업하면 됨!! 아마 잘 될듯?> 몰루? 시발 어제의 나 왜 여기서 관뒀냐..?
 
-    line_names = ['탑', '정글', '미드', '원딜', '서폿']
+def get_user_lineup(head_line_number: int, game_members: int):
+    # 팀원 결과 반환
 
     result = ''
     result += f'팀원\n'
     result += f'=========================================\n\n'
 
-    for line_number in range(len(user_info)):
+    user_list = Runeterra.twenty_user_list if game_members == 20 else Runeterra.forty_user_list
+
+    for line_number, (line_name, users) in enumerate(user_list.items()):
         if line_number == head_line_number:
             continue
+
+        print(users)
 
         participants = []
 
@@ -217,8 +205,6 @@ def get_user_lineup(head_line_number: int, user_info: list, game_members: int):
             participants.append(user_info[line_number][i])
 
         users = sort_game_members(participants)
-
-        line_name = line_names[line_number]
 
         result += f'### {line_name}\n\n'
 
@@ -286,9 +272,7 @@ def get_game_warning(game_members: int):
 
 
 def get_twenty_recruit_board(message):
-    global user_info
-
-    team_head_number = get_team_head_number(user_info, 20)
+    team_head_number = get_team_head_number(20)
 
     twenty_recruit_board = ''
 
@@ -298,24 +282,23 @@ def get_twenty_recruit_board(message):
 
     twenty_recruit_board += f'{today_text} {message}\n\n'
 
-    line_names = ['탑', '정글', '미드', '원딜', '서폿']
-
     for i in range(0, 5):
-        twenty_recruit_board += f'{line_names[i]}'
+        twenty_recruit_board += f'{Runeterra.line_names[i]}'
         if i == team_head_number:
             twenty_recruit_board += f' (팀장)'
         twenty_recruit_board += f'\n'
-        for number, user in enumerate(user_info[i]):
+        for number, (line_name, user_list) in enumerate(Runeterra.twenty_user_list.items):
             if number >= 4:
                 twenty_recruit_board += f'(대기) '
             else:
-                twenty_recruit_board += f'{number+1}. '
+                twenty_recruit_board += f'{number + 1}. '
             twenty_recruit_board += f'{user}\n'
         twenty_recruit_board += f'\n'
 
     twenty_recruit_board += f'```'
 
     return twenty_recruit_board
+
 
 def reset_twenty_game(ctx):
     global user_info
