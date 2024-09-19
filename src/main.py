@@ -6,6 +6,7 @@ from discord import Intents
 from discord.ext import commands
 
 from TwentyAuction import add_user_list_by_own, confirm_twenty_recruit
+from FortyAuction import confirm_forty_recruit
 from TwentyGame import *
 from FortyGame import make_fourty_game, magam_fourty_game, jjong_fourty_game
 from NormalGame import make_normal_game, close_normal_game, end_normal_game
@@ -42,21 +43,20 @@ async def make_game(ctx, *, message='모이면 바로 시작'):
         Runeterra.is_forty_game = await make_fourty_game(ctx, message)
 
     if channel_id in normal_channel_id_list and not Runeterra.is_normal_game:
-        # 내전 채팅 로그 기록 시작, 내전을 연 사람을 로그에 추가
-        Runeterra.normal_game_log = [(ctx.author.id, ctx.author.display_name, ctx.message.id)]
-        Runeterra.normal_game_channel = channel_id
         Runeterra.is_normal_game = await make_normal_game(ctx, message)
 
     if channel_id in Runeterra.SPECIAL_GAME_CHANNEL_ID_LIST:
         await make_normal_game(ctx, message)
 
+    if channel_id == Runeterra.TEST_BY_OWN_CHANNEL_ID:
+        Runeterra.is_normal_game = await make_normal_game(ctx)
 
 @bot.command(name='마감')
 async def close_game(ctx):
     channel_id = str(ctx.channel.id)
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game:
-        Runeterra.is_twenty_game = await magam_twenty_game(ctx)
+        Runeterra.is_twenty_game = await close_twenty_game(ctx)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
         Runeterra.is_forty_game = await magam_fourty_game(ctx)
@@ -70,7 +70,7 @@ async def end_game(ctx):
                               Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game:
-        Runeterra.is_twenty_game = await jjong_twenty_game(ctx)
+        Runeterra.is_twenty_game = await end_twenty_game(ctx)
 
     if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID and Runeterra.is_forty_game:
         Runeterra.is_forty_game = await jjong_fourty_game(ctx)
@@ -92,15 +92,19 @@ async def on_message(message):
 
     # 내전이 열려 있을 경우, 손 든 사람 모집
     if Runeterra.is_normal_game and channel_id == Runeterra.normal_game_channel:
-        Runeterra.normal_game_log.append((message.author.id, message.author.display_name, message.id))
-        normal_game_participants = {user_id: user_name for user_id, user_name, message_id in Runeterra.normal_game_log}
+        user = Runeterra.DiscordUser(message.author.id, message.author.display_name)
+        if user in Runeterra.normal_game_log:
+            Runeterra.normal_game_log[user].append(message.id)
+        else:
+            Runeterra.normal_game_log[user] = [message.id]
         # 참여자 수가 10명이면 내전 자동 마감
-        if len(normal_game_participants) == 10:
-            await close_normal_game(message.channel, list(normal_game_participants.values()))
+        if len(Runeterra.normal_game_log) == 10:
+            await close_normal_game(message.channel, Runeterra.normal_game_log.keys())
             # 내전 변수 초기화
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None
             Runeterra.is_normal_game = False
+        print(Runeterra.normal_game_log)
 
     msg = check_message(message.content)
 
@@ -115,10 +119,11 @@ async def on_message(message):
 @bot.event
 async def on_message_delete(message):
     channel_id = str(message.channel.id)
+    user = Runeterra.DiscordUser(message.author.id, message.author.display_name)
 
     # 내전 모집에서 채팅 지우면 로그에서 삭제
     if Runeterra.is_normal_game and channel_id == Runeterra.normal_game_channel:
-        Runeterra.normal_game_log = [log for log in Runeterra.normal_game_log if log[2] != message.id]
+        Runeterra.normal_game_log[user] = [mid for mid in Runeterra.normal_game_log[user] if mid != message.id]
 
 
 @bot.command(name='비상탈출')
@@ -136,6 +141,9 @@ async def twenty_auction(ctx):
     if channel_id == Runeterra.TWENTY_AUCTION_CHANNEL_ID:
         await confirm_twenty_recruit(ctx)
 
+    if channel_id == Runeterra.FORTY_AUCTION_CHANNEL_ID:
+        await confirm_forty_recruit(ctx)
+
 
 @bot.command(name='수동경매')
 async def twenty_auction_by_own(ctx):
@@ -144,7 +152,7 @@ async def twenty_auction_by_own(ctx):
 
 @bot.command(name='테스트')
 async def test_only_def(ctx):
-    channel_id = str(ctx.channel.id)
+    # await confirm_forty_recruit(ctx)
     return None
 
 
@@ -172,6 +180,11 @@ async def reset_game(ctx):
         reset_twenty_game(ctx)
         await ctx.send('20인 내전을 초기화했습니다.')
 
+    if channel_id == Runeterra.FORTY_RECRUIT_CHANNEL_ID:
+        Runeterra.is_forty_game = False
+        Runeterra.auction_host = None
+        # reset_forty_game(ctx)
+        await ctx.send('40인 내전을 초기화했습니다.')
 
 def main() -> None:
     bot.run(token=TOKEN)

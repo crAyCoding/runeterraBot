@@ -9,13 +9,19 @@ from SortFunctions import sort_game_members, get_result_sorted_by_tier, get_tier
 async def make_normal_game(ctx, message='3판 2선 모이면 바로 시작'):
     # 일반 내전 모집
 
+    # 내전 채팅 로그 기록 시작, 내전을 연 사람을 로그에 추가
+    user = Runeterra.DiscordUser(ctx.author.id, ctx.author.display_name)
+    Runeterra.normal_game_log = {user: [ctx.message.id]}
+    Runeterra.normal_game_channel = str(ctx.channel.id)
+
     Runeterra.normal_game_creator_id = ctx.author.id
     await ctx.send(f'@everyone 내전 {message}')
     return True
 
 
-async def close_normal_game(ctx, participants):
+async def close_normal_game(ctx, user_list):
     # 일반 내전 마감
+    participants = [user.nickname for user in user_list]
 
     class GameMember:
         def __init__(self, index):
@@ -295,6 +301,7 @@ async def choose_order_game(ctx, blue_team, red_team, members):
 
         if random_number1 != random_number2:
             selected = blue_team[0] if random_number1 > random_number2 else red_team[0]
+            order_flag = True if selected == blue_team[0] else False
             not_selected = red_team[0] if selected == blue_team[0] else blue_team[0]
             break
 
