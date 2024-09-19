@@ -36,6 +36,12 @@ class DiscordUser:
         self.id = id
         self.nickname = nickname
 
+    def __eq__(self, other):
+        return isinstance(other, DiscordUser) and self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
+
 # 내전 채널 ID 목록
 GAME_A_CHANNEL_ID = '1206635064444854363'
 GAME_B_CHANNEL_ID = '1203295033378209852'
