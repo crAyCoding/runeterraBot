@@ -147,9 +147,13 @@ async def twenty_auction_by_own(ctx):
 
 @bot.command(name='테스트')
 async def test_only_def(ctx):
-    await confirm_twenty_recruit(ctx)
+    Runeterra.is_twenty_game = await make_twenty_game(ctx)
     return None
 
+
+@bot.command(name='테스트종료')
+async def test_end_def(ctx):
+    reset_twenty_game(ctx)
 
 @bot.command(name='초기화')
 async def reset_game(ctx):
