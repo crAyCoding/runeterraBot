@@ -31,6 +31,9 @@ twenty_game_view = None
 # 40인 내전이 진행 중인지 확인
 is_forty_game = False
 
+# 40인 내전 유저 LIST
+forty_user_list = None
+
 class DiscordUser:
     def __init__(self, id, nickname):
         self.id = id

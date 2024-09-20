@@ -37,7 +37,7 @@ async def make_twenty_game(ctx, message='모이면 바로 시작'):
                     break
 
             # 다른 라인에 등록했는지 체크, 등록되어 있으면 상호작용 무시
-            for line_users in Runeterra.twenty_user_list.values():
+            for (line, line_users) in Runeterra.twenty_user_list.items():
                 for line_user in line_users:
                     if user.id == line_user.id:
                         is_valid_push = False
@@ -52,7 +52,7 @@ async def make_twenty_game(ctx, message='모이면 바로 시작'):
             button.style = discord.ButtonStyle.red \
                 if len(Runeterra.twenty_user_list[line_name]) >= 4 else discord.ButtonStyle.gray
 
-            await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=game_view)
+            await interaction.response.edit_message(content=get_twenty_recruit_board(message), view=Runeterra.twenty_game_view)
 
         return callback
 
@@ -75,7 +75,7 @@ async def make_twenty_game(ctx, message='모이면 바로 시작'):
     Runeterra.twenty_user_list = {line_name: [] for line_name in Runeterra.line_names}
     Runeterra.twenty_game_view = TwentyView()
     Runeterra.twenty_host = ctx.author.id
-    await ctx.send(content=get_twenty_recruit_board(message), view=game_view)
+    await ctx.send(content=get_twenty_recruit_board(message), view=Runeterra.twenty_game_view)
     await ctx.send(f'@everyone 20인 내전 {message}')
     await ctx.send(f'이미 모집된 라인(버튼이 빨간색인 경우)에 참여를 원하는 경우, 버튼을 누르시면 자동으로 대기 목록에 추가됩니다.')
 
@@ -197,19 +197,17 @@ def get_user_lineup(head_line_number: int, game_members: int):
         if line_number == head_line_number:
             continue
 
-        print(users)
-
         participants = []
 
-        for i in range(min((game_members // 5), len(user_info[line_number]))):
-            participants.append(user_info[line_number][i])
+        for i in range(0, game_members // 5):
+            participants.append(users[i])
 
-        users = sort_game_members(participants)
+        sorted_participants = sort_game_members(participants)
 
         result += f'### {line_name}\n\n'
 
-        for i in range(len(users)):
-            result += f'{users[i]}\n'
+        for participant in sorted_participants:
+            result += f'{participant}\n'
 
         result += f' \n'
 
@@ -218,20 +216,18 @@ def get_user_lineup(head_line_number: int, game_members: int):
     return result
 
 
-def get_waiting_list(user_info: list, game_members: int):
+def get_waiting_list(game_members: int):
     # 대기자 명단 반환
-
-    line_names = ['탑', '정글', '미드', '원딜', '서폿']
 
     waiting_list = ''
 
-    for line_number in range(len(user_info)):
-        for i in range(len(user_info[line_number])):
+    for (line_name, user_list) in Runeterra.twenty_user_list.items():
+        for i in range(len(user_list)):
             if i == (game_members // 5):
-                waiting_list += f'{line_names[line_number]}\n'
+                waiting_list += f'{line_name}\n'
 
             if i >= (game_members // 5):
-                waiting_list += f'{user_info[line_number][i]}\n'
+                waiting_list += f'{user_list[i]}\n'
 
     if waiting_list == '':
         return waiting_list
@@ -282,12 +278,12 @@ def get_twenty_recruit_board(message):
 
     twenty_recruit_board += f'{today_text} {message}\n\n'
 
-    for i in range(0, 5):
-        twenty_recruit_board += f'{Runeterra.line_names[i]}'
+    for i, (line_name, user_list) in enumerate(Runeterra.twenty_user_list.items()):
+        twenty_recruit_board += f'{line_name}'
         if i == team_head_number:
             twenty_recruit_board += f' (팀장)'
         twenty_recruit_board += f'\n'
-        for number, (line_name, user_list) in enumerate(Runeterra.twenty_user_list.items):
+        for number, user in enumerate(user_list):
             if number >= 4:
                 twenty_recruit_board += f'(대기) '
             else:
@@ -301,6 +297,8 @@ def get_twenty_recruit_board(message):
 
 
 def reset_twenty_game(ctx):
-    global user_info
 
-    user_info = None
+    Runeterra.twenty_user_list = None
+    Runeterra.is_twenty_game = False
+    Runeterra.twenty_host = None
+    Runeterra.twenty_game_view = None
