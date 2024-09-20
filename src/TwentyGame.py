@@ -145,7 +145,7 @@ def get_team_head_number(game_members: int):
                                                    if game_members == 20 else Runeterra.forty_user_list.items()):
         if len(user_list) < (game_members // 5):
             continue
-        scores = [get_user_tier_score(user) for user in user_list[:(game_members // 5)]]
+        scores = [get_user_tier_score(user.nickname) for user in user_list[:(game_members // 5)]]
 
         if scores:
             diff = max(scores) - min(scores)
@@ -200,7 +200,7 @@ def get_user_lineup(head_line_number: int, game_members: int):
         participants = []
 
         for i in range(0, game_members // 5):
-            participants.append(users[i])
+            participants.append(users[i].nickname)
 
         sorted_participants = sort_game_members(participants)
 
@@ -227,7 +227,7 @@ def get_waiting_list(game_members: int):
                 waiting_list += f'{line_name}\n'
 
             if i >= (game_members // 5):
-                waiting_list += f'{user_list[i]}\n'
+                waiting_list += f'{user_list[i].nickname}\n'
 
     if waiting_list == '':
         return waiting_list
@@ -288,7 +288,7 @@ def get_twenty_recruit_board(message):
                 twenty_recruit_board += f'(대기) '
             else:
                 twenty_recruit_board += f'{number + 1}. '
-            twenty_recruit_board += f'{user}\n'
+            twenty_recruit_board += f'{user.nickname}\n'
         twenty_recruit_board += f'\n'
 
     twenty_recruit_board += f'```'
