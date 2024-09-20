@@ -103,7 +103,6 @@ async def on_message(message):
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None
             Runeterra.is_normal_game = False
-        print(Runeterra.normal_game_log)
 
     msg = check_message(message.content)
 
@@ -148,7 +147,7 @@ async def twenty_auction_by_own(ctx):
 
 @bot.command(name='테스트')
 async def test_only_def(ctx):
-    # await confirm_forty_recruit(ctx)
+    await confirm_twenty_recruit(ctx)
     return None
 
 
