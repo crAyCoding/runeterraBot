@@ -106,7 +106,6 @@ async def on_message(message):
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None
             Runeterra.is_normal_game = False
-        print(Runeterra.normal_game_log)
 
     msg = check_message(message.content)
 
@@ -151,9 +150,13 @@ async def twenty_auction_by_own(ctx):
 
 @bot.command(name='테스트')
 async def test_only_def(ctx):
-    # await confirm_forty_recruit(ctx)
+    Runeterra.is_twenty_game = await make_twenty_game(ctx)
     return None
 
+
+@bot.command(name='테스트종료')
+async def test_end_def(ctx):
+    reset_twenty_game(ctx)
 
 @bot.command(name='초기화')
 async def reset_game(ctx):
