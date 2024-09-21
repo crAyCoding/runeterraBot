@@ -33,8 +33,7 @@ async def make_game(ctx, *, message='모이면 바로 시작'):
 
     channel_id = str(ctx.channel.id)
     normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
-                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID,
-                              Runeterra.GAME_1_CHANNEL_ID, Runeterra.GAME_2_CHANNEL_ID]
+                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and not Runeterra.is_twenty_game:
         Runeterra.is_twenty_game = await make_twenty_game(ctx, message)
@@ -68,8 +67,7 @@ async def end_game(ctx):
     channel_id = str(ctx.channel.id)
 
     normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
-                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID,
-                              Runeterra.GAME_1_CHANNEL_ID, Runeterra.GAME_2_CHANNEL_ID]
+                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
 
     if channel_id == Runeterra.TWENTY_RECRUIT_CHANNEL_ID and Runeterra.is_twenty_game:
         Runeterra.is_twenty_game = await end_twenty_game(ctx)
@@ -165,8 +163,7 @@ async def reset_game(ctx):
     user_id = str(ctx.author.id)
 
     normal_channel_id_list = [Runeterra.GAME_A_CHANNEL_ID, Runeterra.GAME_B_CHANNEL_ID,
-                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID,
-                              Runeterra.GAME_1_CHANNEL_ID, Runeterra.GAME_2_CHANNEL_ID]
+                              Runeterra.GAME_C_CHANNEL_ID, Runeterra.GAME_D_CHANNEL_ID]
 
     if user_id != Runeterra.SORCERER:
         await ctx.send('개발자만 가능해요~ 안돼요~ 돌아가요~')
