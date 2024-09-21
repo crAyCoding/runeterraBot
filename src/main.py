@@ -85,6 +85,9 @@ async def end_game(ctx):
 async def on_message(message):
     channel_id = str(message.channel.id)
 
+    if channel_id != '1287066724533010442':
+        return None
+
     # 봇 메세지는 메세지로 인식 X
     if message.author == bot.user:
         return
