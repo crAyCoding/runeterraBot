@@ -136,9 +136,10 @@ async def shutdown(ctx):
 @bot.command(name='경매')
 async def twenty_auction(ctx):
     channel_id = str(ctx.channel.id)
+    auction_starter = ctx.author.display_name
 
     if channel_id == Runeterra.TWENTY_AUCTION_CHANNEL_ID:
-        await confirm_twenty_recruit(ctx)
+        await confirm_twenty_recruit(ctx, auction_starter)
 
 
 @bot.command(name='수동경매')

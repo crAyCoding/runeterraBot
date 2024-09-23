@@ -2,28 +2,20 @@ from datetime import datetime
 import random
 
 import discord
+import Runeterra
 from discord.ui import Button, View, Modal
 
 from TwentyGame import get_team_head_number, get_team_head_lineup, get_user_lineup
 
-user_list = None
 
-
-async def add_user_info(user_info):
-    global user_list
-
-    user_list = user_info
-
-
-async def confirm_twenty_recruit(ctx):
-    global user_list
-
-    line_names = ['탑', '정글', '미드', '원딜', '서폿']
+async def confirm_twenty_recruit(ctx, auction_starter):
 
     class TwentyMember:
         def __init__(self, index):
-            self.line = line_names[index]
-            self.members = user_list[index]
+            line_name = Runeterra.line_names[index]
+            self.index = index
+            self.line = line_name
+            self.members = Runeterra.twenty_user_list[line_name]
 
     class AuctionView(discord.ui.View):
         def __init__(self):
@@ -34,35 +26,34 @@ async def confirm_twenty_recruit(ctx):
             self.add_item(ConfirmButton())
 
         async def update_message(self, interaction: discord.Interaction):
-            members_text = f'참여 명단\n=========================================\n'
-            for i in range(0, 5):
-                members_text += get_members_text(user_list[i], line_names[i])
-            await interaction.response.edit_message(content=members_text, view=self)
+            await interaction.response.edit_message(content=get_members_text(), view=self)
 
     class ConfirmButton(discord.ui.Button):
         def __init__(self):
-            super().__init__(label=f"명단 확정",style=discord.ButtonStyle.success)
+            super().__init__(label=f"명단 확정", style=discord.ButtonStyle.success)
 
         async def callback(self, interaction: discord.Interaction):
-            username = interaction.user.display_name
-            await ctx.send(f'{username}님이 명단을 확정지었습니다.')
+            user_name = interaction.user.display_name
+            if auction_starter != user_name:
+                await interaction.response.edit_message(content=get_members_text(), view=self.view)
+                return
             await interaction.message.delete()
-            await run_twenty_auction(ctx)
+            await run_twenty_auction(ctx, auction_starter)
 
     class EditButton(discord.ui.Button):
-        def __init__(self, members):
-            super().__init__(label=f"{members.line} 명단 수정")
-            self.members = members
+        def __init__(self, twenty_member):
+            super().__init__(label=f"{twenty_member.line} 명단 수정")
+            self.twenty_member = twenty_member
 
         async def callback(self, interaction: discord.Interaction):
-            await interaction.response.send_modal(EditModal(members=self.members))
+            await interaction.response.send_modal(EditModal(twenty_member=self.twenty_member))
 
     class EditModal(discord.ui.Modal):
-        def __init__(self, members):
-            super().__init__(title=f"{members.line} 명단 수정")
-            self.members = members
+        def __init__(self, twenty_member):
+            super().__init__(title=f"{twenty_member.line} 명단 수정")
+            self.twenty_member = twenty_member
 
-            default_text = get_members_text(self.members.members, self.members.line)
+            default_text = get_member_text_by_index(twenty_member.index)
 
             self.text_input = discord.ui.TextInput(
                 label=f"제공된 양식에서 벗어나지 않게 주의해주세요.",
@@ -72,64 +63,62 @@ async def confirm_twenty_recruit(ctx):
             self.add_item(self.text_input)
 
         async def on_submit(self, interaction: discord.Interaction):
-            await edit_user_list(self.text_input.value)
+            await edit_twenty_user_list(self.twenty_member.index, self.text_input.value)
             await view.update_message(interaction)
 
     view = AuctionView()
-    members_text = f'참여 명단\n=========================================\n'
-    for i in range(0, 5):
-        members_text += get_members_text(user_list[i], line_names[i])
+    members_text = get_members_text()
     await ctx.send(content=members_text, view=view)
 
 
-def get_members_text(member_list, line):
-    members = member_list
+def get_members_text():
+    members_text = '참여 명단\n=========================================\n'
+    for index in range(0, 5):
+        members_text += get_member_text_by_index(index)
+    return members_text
 
-    members_text = f'{line}\n'
 
-    for member in members:
-        members_text += f'{member}\n'
+def get_member_text_by_index(index):
+    line_name = Runeterra.line_names[index]
+    member_list = Runeterra.twenty_user_list[line_name]
+
+    members_text = f'{line_name}\n'
+
+    for i, member in enumerate(member_list):
+        if i >= 4:
+            members_text += f'(대기) '
+        members_text += f'{member.nickname}\n'
 
     members_text += f'=========================================\n'
 
     return members_text
 
 
-async def edit_user_list(input_text):
-    global user_list
+async def edit_twenty_user_list(index, input_text):
 
-    line_names = ['탑', '정글', '미드', '원딜', '서폿']
-
-    splitted_input = input_text.split('\n')
-    line_name = splitted_input[0]
-    line_index = 0
-    for i, name in enumerate(line_names):
-        if name == line_name:
-            line_index = i
-    for index in range(1, 5):
-        user_list[line_index][index - 1] = splitted_input[index]
-
-    return None
+    user_nicknames = input_text.split('\n')[1:]
+    line_name = Runeterra.line_names[index]
+    for i, user in enumerate(user_nicknames):
+        Runeterra.twenty_user_list[line_name][i].nickname = user
 
 
-async def run_twenty_auction(ctx):
-    global user_list
+async def run_twenty_auction(ctx, auction_starter):
 
     # user_list는 20인 내전으로부터 받아와야 함. 일단 지금은 생략
     # user_list = read_file_and_split_to_arrays('twentyex.txt')
 
-    if user_list is None:
-        await ctx.send(f'문제가 발생했습니다. 수동으로 경매를 진행해주세요.')
+    if Runeterra.twenty_user_list is None:
+        await ctx.send(f'20인 내전 명단이 비어있습니다. 어떡하죠?')
         return None
 
     game_members = 20
 
     # 팀장 라인 번호 찾기
-    team_head_line_number = get_team_head_number(user_list, game_members)
+    team_head_line_number = get_team_head_number(game_members)
     # 팀장 텍스트
-    team_head_lineup = get_team_head_lineup(team_head_line_number, user_list, game_members)
+    team_head_lineup = get_team_head_lineup(team_head_line_number, game_members)
     # 팀원 텍스트
-    team_user_lineup = get_user_lineup(team_head_line_number, user_list, game_members)
+    team_user_lineup = get_user_lineup(team_head_line_number, game_members)
 
     today_title = datetime.now().strftime("%m월 %d일 20인 내전")
     auction_warning = get_auction_warning()
@@ -158,23 +147,7 @@ async def run_twenty_auction(ctx):
             await interaction.message.delete()
             if warning_message is not None:
                 await warning_message.delete()
-            await confirm_twenty_recruit(ctx)
-
-    class TwentyAuctionModal(Modal):
-        def __init__(self, view: NoteView):
-            super().__init__(title=f'{today_title}', timeout=21600)
-            self.view = view
-            self.note_input = discord.ui.TextInput(
-                label='프로필만 변경해주세요. 포맷이 변경되면 오류가 발생합니다.',
-                style=discord.TextStyle.paragraph,
-                default=self.view.content
-            )
-            self.add_item(self.note_input)
-
-        async def on_submit(self, interaction: discord.Interaction):
-            self.view.content = self.note_input.value
-            embed = discord.Embed(title=f'{today_title}', description=self.view.content)
-            await interaction.response.edit_message(embed=embed, view=self.view)
+            await confirm_twenty_recruit(ctx, auction_starter)
 
     view = NoteView()
     embed = discord.Embed(title=view.title, description=view.content)
