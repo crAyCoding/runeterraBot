@@ -79,7 +79,7 @@ async def close_normal_game(ctx, user_list):
             sorted_participants_message = get_result_sorted_by_tier(participants_result)
 
             await ctx.send(sorted_participants_message)
-            await handle_game_team(ctx, participants_result, game_host)
+            await handle_game_team(ctx, participants_result, game_host, user_list)
 
     view = GameView()
     game_members_result = "\n".join([f"### {member.index}: {member.name}" for member in view.members])
@@ -100,7 +100,7 @@ async def end_normal_game(ctx):
     return False
 
 
-async def handle_game_team(ctx, participants, game_host):
+async def handle_game_team(ctx, participants, game_host, user_list):
     team_head_list = []
 
     class GameMember:
@@ -173,7 +173,7 @@ async def handle_game_team(ctx, participants, game_host):
                                                         view=self.view)
                 return
             await interaction.message.delete()
-            await close_normal_game(ctx, participants)
+            await close_normal_game(ctx, user_list)
 
     handle_team_view = HandleTeamView()
     await ctx.send(content=f'## {game_host}님, 팀장 두 분의 닉네임 버튼을 눌러주세요.', view=handle_team_view)
