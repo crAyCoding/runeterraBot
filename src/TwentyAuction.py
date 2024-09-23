@@ -99,7 +99,10 @@ async def edit_twenty_user_list(index, input_text):
     user_nicknames = input_text.split('\n')[1:]
     line_name = Runeterra.line_names[index]
     for i, user in enumerate(user_nicknames):
-        Runeterra.twenty_user_list[line_name][i].nickname = user
+        if len(Runeterra.twenty_user_list[line_name]) < i:
+            Runeterra.twenty_user_list[line_name].append(Runeterra.DiscordUser(-1,user))
+        else:
+            Runeterra.twenty_user_list[line_name][i].nickname = user
 
 
 async def run_twenty_auction(ctx, auction_starter):
