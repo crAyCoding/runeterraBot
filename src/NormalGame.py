@@ -19,14 +19,16 @@ async def make_normal_game(ctx, message='3판 2선 모이면 바로 시작'):
     return True
 
 
-async def close_normal_game(ctx, user_list):
+async def close_normal_game(ctx, normal_game_log):
     # 일반 내전 마감
-    participants = [user.nickname for user in user_list]
+    participants = [user.nickname for user in normal_game_log.keys()]
+    id_list = [user.id for user in normal_game_log.keys()]
 
     class GameMember:
         def __init__(self, index):
             self.index = index + 1
             self.name = participants[index]
+            self.id = id_list[index]
 
     class GameView(discord.ui.View):
         def __init__(self):
@@ -37,8 +39,8 @@ async def close_normal_game(ctx, user_list):
             self.add_item(GameStartButton())
 
         async def update_message(self, interaction: discord.Interaction):
-            game_members_result = "\n".join([f"### {member.index}: {member.name}" for member in self.members])
-            await interaction.response.edit_message(content=game_members_result, view=self)
+            updated_message = "\n".join([f"### {member.index}: <@{member.id}>" for member in self.members])
+            await interaction.response.edit_message(content=updated_message, view=self)
 
     class EditButton(discord.ui.Button):
         def __init__(self, member):
@@ -79,11 +81,11 @@ async def close_normal_game(ctx, user_list):
             sorted_participants_message = get_result_sorted_by_tier(participants_result)
 
             await ctx.send(sorted_participants_message)
-            await handle_game_team(ctx, participants_result, game_host, user_list)
+            await handle_game_team(ctx, participants_result, game_host, normal_game_log)
 
     view = GameView()
-    game_members_result = "\n".join([f"### {member.index}: {member.name}" for member in view.members])
-    await ctx.send(content=f'@everyone 내전 모집이 완료되었습니다. 참여 명단을 확인하세요.\n\n{game_members_result}', view=view)
+    game_members_result = "\n".join([f"### {member.index}: <@{member.id}>" for member in view.members])
+    await ctx.send(content=f'내전 모집이 완료되었습니다. 참여 명단을 확인하세요.\n\n{game_members_result}', view=view)
 
 
 async def end_normal_game(ctx):
@@ -100,7 +102,7 @@ async def end_normal_game(ctx):
     return False
 
 
-async def handle_game_team(ctx, participants, game_host, user_list):
+async def handle_game_team(ctx, participants, game_host, normal_game_log):
     team_head_list = []
 
     class GameMember:
@@ -127,8 +129,9 @@ async def handle_game_team(ctx, participants, game_host, user_list):
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
             if username != game_host:
-                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
-                                                        view=self.view)
+                await (interaction.response.edit_message
+                       (content=f'## {Runeterra.get_nickname(game_host)}님이 누른 것만 인식합니다. '
+                                f'{Runeterra.get_nickname(username)}님 누르지 말아주세요.', view=self.view))
                 return
             team_head_list.append(self.member.name)
             await ctx.send(f'{self.member.name}님이 팀장입니다.')
@@ -148,8 +151,9 @@ async def handle_game_team(ctx, participants, game_host, user_list):
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
             if username != game_host:
-                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
-                                                        view=self.view)
+                await (interaction.response.edit_message
+                       (content=f'## {Runeterra.get_nickname(game_host)}님이 누른 것만 인식합니다. '
+                                f'{Runeterra.get_nickname(username)}님 누르지 말아주세요.', view=self.view))
                 return
             await ctx.send(f'메모장으로 진행합니다.')
             await interaction.message.delete()
@@ -169,14 +173,15 @@ async def handle_game_team(ctx, participants, game_host, user_list):
         async def callback(self, interaction: discord.Interaction):
             username = interaction.user.display_name
             if username != game_host:
-                await interaction.response.edit_message(content=f'## {game_host}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
-                                                        view=self.view)
+                await (interaction.response.edit_message
+                       (content=f'## {Runeterra.get_nickname(game_host)}님이 누른 것만 인식합니다. '
+                                f'{Runeterra.get_nickname(username)}님 누르지 말아주세요.', view=self.view))
                 return
             await interaction.message.delete()
-            await close_normal_game(ctx, user_list)
+            await close_normal_game(ctx, normal_game_log)
 
     handle_team_view = HandleTeamView()
-    await ctx.send(content=f'## {game_host}님, 팀장 두 분의 닉네임 버튼을 눌러주세요.', view=handle_team_view)
+    await ctx.send(content=f'## {Runeterra.get_nickname(game_host)}님, 팀장 두 분의 닉네임 버튼을 눌러주세요.', view=handle_team_view)
 
 
 async def make_auto_team(ctx, participants):
@@ -273,18 +278,19 @@ async def choose_blue_red_game(ctx, team_head_list, members):
         async def button_callback(self, interaction: discord.Interaction, team_type: bool):
             username = interaction.user.display_name
             if username != selected:
-                warning_message = f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.'
+                warning_message = (f'## {Runeterra.get_nickname(selected)}님이 누른 것만 인식합니다. '
+                                   f'{Runeterra.get_nickname(username)}님 누르지 말아주세요.')
                 await interaction.response.edit_message(content=warning_message, view=blue_red_view)
                 return
             (blue_team if team_type else red_team).append(selected)
             (red_team if team_type else blue_team).append(not_selected)
             selected_team = '블루팀' if team_type else '레드팀'
-            await ctx.send(f'{selected}님이 {selected_team}을 선택하셨습니다.')
+            await ctx.send(f'{Runeterra.get_nickname(selected)}님이 {selected_team}을 선택하셨습니다.')
             await interaction.message.delete()
             await choose_order_game(ctx, blue_team, red_team, members)
 
     blue_red_view = BlueRedView()
-    await ctx.send(content=f'## {selected}님, 진영을 선택해주세요.', view=blue_red_view)
+    await ctx.send(content=f'## {Runeterra.get_nickname(selected)}님, 진영을 선택해주세요.', view=blue_red_view)
 
 
 async def choose_order_game(ctx, blue_team, red_team, members):
@@ -321,17 +327,18 @@ async def choose_order_game(ctx, blue_team, red_team, members):
         async def button_callback(self, interaction: discord.Interaction, pick_type):
             username = interaction.user.display_name
             if username != selected:
-                warning_message = f'## {selected}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.'
+                warning_message = (f'## {Runeterra.get_nickname(selected)}님이 누른 것만 인식합니다. '
+                                   f'{Runeterra.get_nickname(username)}님 누르지 말아주세요.')
                 await interaction.response.edit_message(content=warning_message, view=order_view)
                 return
             order_type = '선뽑' if pick_type else '후뽑'
-            await ctx.send(f'{selected}님이 {order_type}입니다.')
+            await ctx.send(f'{Runeterra.get_nickname(selected)}님이 {order_type}입니다.')
             await interaction.message.delete()
             await choose_game_team(ctx, teams, order_flag if pick_type else not order_flag, members)
             return
 
     order_view = OrderView()
-    await ctx.send(content=f'## {selected}님, 뽑는 순서를 정해주세요.', view=order_view)
+    await ctx.send(content=f'## {Runeterra.get_nickname(selected)}님, 뽑는 순서를 정해주세요.', view=order_view)
 
 
 async def choose_game_team(ctx, teams, flag, members):
@@ -370,7 +377,9 @@ async def choose_game_team(ctx, teams, flag, members):
 
             if username != team_head:
                 await interaction.response.edit_message(
-                    content=f'{get_game_board(teams)}\n## {team_head}님이 누른 것만 인식합니다. {username}님 누르지 말아주세요.',
+                    content=f'{get_game_board(teams)}\n## '
+                            f'{Runeterra.get_nickname(team_head)}님이 누른 것만 인식합니다. '
+                            f'{Runeterra.get_nickname(username)}님 누르지 말아주세요.',
                     view=self.view)
                 return
 
@@ -379,7 +388,9 @@ async def choose_game_team(ctx, teams, flag, members):
             add_member_to_team(pick_order, teams, self.member.name)
             pick_order.pop(0)
 
-            await ctx.send(f'{username}님이 {self.member.name}님을 뽑았습니다.')
+            await ctx.send(f'{Runeterra.get_nickname(username)}님이 '
+                           f'{Runeterra.get_nickname(self.member.name)}님을 '
+                           f'{8 - len(pick_order)}번째로 뽑았습니다.')
 
             if len(pick_order) == 1:
                 add_member_to_team(pick_order, teams, self.view.members[0].name)
@@ -387,15 +398,17 @@ async def choose_game_team(ctx, teams, flag, members):
                 await ctx.send(get_game_board(teams))
                 await ctx.send(f'밴픽은 아래 사이트에서 진행해주시면 됩니다.')
                 await ctx.send(f'https://banpick.kr/')
-                await ctx.send(f'사용자설정 방 제목 : 룬테라 / 비밀번호 : 1234')
+                await ctx.send(f'사용자 설정 방 제목 : 룬테라 / 비밀번호 : 1234')
                 return
 
             team_head = get_team_head(pick_order, teams)
-            await interaction.response.edit_message(content=f'{get_game_board(teams)}\n## {team_head}님, 팀원을 뽑아주세요.',
+            await interaction.response.edit_message(content=f'{get_game_board(teams)}\n## '
+                                                            f'{Runeterra.get_nickname(team_head)}님, 팀원을 뽑아주세요.',
                                                     view=self.view)
 
     choose_game_view = ChooseGameView()
-    await ctx.send(content=f'{get_game_board(teams)}\n## {get_team_head(pick_order, teams)}님, 팀원을 뽑아주세요.',
+    await ctx.send(content=f'{get_game_board(teams)}\n## '
+                           f'{Runeterra.get_nickname(get_team_head(pick_order, teams))}님, 팀원을 뽑아주세요.',
                    view=choose_game_view)
 
     # await ctx.send(get_game_board(teams))

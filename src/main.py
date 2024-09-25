@@ -99,8 +99,9 @@ async def on_message(message):
             Runeterra.normal_game_log[user] = [message.id]
         # 참여자 수가 10명이면 내전 자동 마감
         if len(Runeterra.normal_game_log) == 10:
-            await close_normal_game(message.channel, Runeterra.normal_game_log.keys())
-            # 내전 변수 초기화
+            await close_normal_game(message.channel, Runeterra.normal_game_log)
+
+            # 내전 변수 초기화, 명단 확정 후에 진행
             Runeterra.normal_game_log = None
             Runeterra.normal_game_channel = None
             Runeterra.is_normal_game = False
