@@ -1,4 +1,4 @@
-def sort_game_members(participants: list):
+def sort_game_members(user_list: list):
     # 티어별로 정리
 
     challenger_users = list()
@@ -13,8 +13,10 @@ def sort_game_members(participants: list):
     iron_users = list()
     unranked_users = list()
 
-    for user in participants:
-        splitted_user_profile = user.split('/')
+    for user in user_list:
+        id = user.id
+        nickname = user.nickname
+        splitted_user_profile = nickname.split('/')
         user_tier = splitted_user_profile[1].strip()
         if user_tier[0] == '🔻' or user_tier[0] == '🔺':
             user_tier = user_tier[1:]
@@ -116,8 +118,8 @@ def sort_game_members(participants: list):
         for user in unranked_users:
             user_result.append(user[1])
 
-
     return user_result
+
 
 def get_result_sorted_by_tier(user_result: list):
     now_tier = ''
@@ -138,6 +140,7 @@ def get_result_sorted_by_tier(user_result: list):
     result += f'\n=========================================\n'
 
     return result
+
 
 def get_tier_score(user):
     splitted_user_profile = user.split('/')

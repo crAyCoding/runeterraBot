@@ -107,7 +107,7 @@ async def close_twenty_game(ctx):
 
     await ctx.send(get_game_warning(game_members))
 
-    await ctx.send(f'@everyone {game_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
+    await ctx.send(f'{game_members}인 내전 모집이 완료되었습니다. 결과를 확인해주세요')
     await ctx.send(f'20인내전경매 채널에서 !경매 를 통해 경매를 시작할 수 있습니다.')
 
     # 초기화
@@ -144,7 +144,7 @@ def get_team_head_number(game_members: int):
                                                    if game_members == 20 else Runeterra.forty_user_list.items()):
         if len(user_list) < (game_members // 5):
             continue
-        scores = [get_user_tier_score(user.nickname) for user in user_list[:(game_members // 5)]]
+        scores = [get_user_tier_score(user) for user in user_list[:(game_members // 5)]]
 
         if scores:
             diff = max(scores) - min(scores)
@@ -167,21 +167,19 @@ def get_team_head_lineup(head_line_number: int, game_members: int):
 
     user_list = Runeterra.twenty_user_list if game_members == 20 else Runeterra.forty_user_list
 
-    participants = [user.nickname for user in user_list[line_name][:(game_members // 5)]]
+    participants = [user for user in user_list[line_name][:(game_members // 5)]]
 
     users = sort_game_members(participants)
 
-    for i, user_nickname in enumerate(users):
+    for i, user in enumerate(users):
         result += f'{i + 1}팀\n'
-        user_score = get_user_tier_score(user_nickname)
-        result += f'{user_nickname} : {user_score}\n\n'
+        user_score = get_user_tier_score(user)
+        result += f'<@{user.id}> : {user_score}\n\n'
 
     result += f'=========================================\n\n\n'
 
     return result
 
-
-# 여기부터 작업하면 됨!! 아마 잘 될듯?> 몰루? 시발 어제의 나 왜 여기서 관뒀냐..?
 
 def get_user_lineup(head_line_number: int, game_members: int):
     # 팀원 결과 반환
@@ -199,14 +197,14 @@ def get_user_lineup(head_line_number: int, game_members: int):
         participants = []
 
         for i in range(0, game_members // 5):
-            participants.append(users[i].nickname)
+            participants.append(users[i])
 
         sorted_participants = sort_game_members(participants)
 
         result += f'### {line_name}\n\n'
 
-        for participant in sorted_participants:
-            result += f'{participant}\n'
+        for user in sorted_participants:
+            result += f'<@{user.id}>\n'
 
         result += f' \n'
 

@@ -1,10 +1,13 @@
-def get_user_tier_score(user: str):
+import Runeterra
+
+
+def get_user_tier_score(discord_user: Runeterra.DiscordUser):
+    user = discord_user.nickname
     splitted_user_profile = user.split('/')
     user_name = splitted_user_profile[0].strip()
     user_tier = splitted_user_profile[1].strip()
     if user_tier[0] == '🔻' or user_tier[0] == '🔺':
         user_tier = user_tier[1:]
-
 
     user_level = user_tier[0].upper()
 
