@@ -123,6 +123,9 @@ async def on_message_delete(message):
     # 내전 모집에서 채팅 지우면 로그에서 삭제
     if Runeterra.is_normal_game and channel_id == Runeterra.normal_game_channel:
         Runeterra.normal_game_log[user] = [mid for mid in Runeterra.normal_game_log[user] if mid != message.id]
+        # 만약 채팅이 더 남아있지 않으면 로그에서 유저 삭제
+        if not Runeterra.normal_game_log[user]:
+            del Runeterra.normal_game_log[user]
 
 
 @bot.command(name='비상탈출')
