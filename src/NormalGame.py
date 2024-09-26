@@ -21,14 +21,12 @@ async def make_normal_game(ctx, message='3판 2선 모이면 바로 시작'):
 
 async def close_normal_game(ctx, normal_game_log):
     # 일반 내전 마감
-    participants = [user.nickname for user in normal_game_log.keys()]
-    id_list = [user.id for user in normal_game_log.keys()]
+    participants = [user for user in normal_game_log.keys()]
 
     class GameMember:
         def __init__(self, index):
             self.index = index + 1
-            self.name = participants[index]
-            self.id = id_list[index]
+            self.user = participants[index]
 
     class GameView(discord.ui.View):
         def __init__(self):
@@ -39,7 +37,7 @@ async def close_normal_game(ctx, normal_game_log):
             self.add_item(GameStartButton())
 
         async def update_message(self, interaction: discord.Interaction):
-            updated_message = "\n".join([f"### {member.index}: <@{member.id}>" for member in self.members])
+            updated_message = "\n".join([f"### {member.index}: <@{member.user.id}>" for member in self.members])
             await interaction.response.edit_message(content=updated_message, view=self)
 
     class EditButton(discord.ui.Button):
@@ -57,12 +55,12 @@ async def close_normal_game(ctx, normal_game_log):
 
             self.text_input = discord.ui.TextInput(
                 label=f"서버 닉네임을 전부 넣어주세요.",
-                default=self.member.name
+                default=self.member.user.nickname
             )
             self.add_item(self.text_input)
 
         async def on_submit(self, interaction: discord.Interaction):
-            self.member.name = self.text_input.value
+            self.member.user.nickname = self.text_input.value
             await view.update_message(interaction)
 
     class GameStartButton(discord.ui.Button):
@@ -71,11 +69,11 @@ async def close_normal_game(ctx, normal_game_log):
 
         async def callback(self, interaction: discord.Interaction):
             game_host = interaction.user.display_name
-            await ctx.send(f'{game_host}님이 명단을 확정지었습니다.')
+            await ctx.send(f'{Runeterra.get_nickname(game_host)}님이 명단을 확정지었습니다.')
             await interaction.message.delete()
             final_participants = []
             for member in view.members:
-                final_participants.append(member.name)
+                final_participants.append(member.user)
 
             participants_result = sort_game_members(final_participants)
             sorted_participants_message = get_result_sorted_by_tier(participants_result)
@@ -84,7 +82,7 @@ async def close_normal_game(ctx, normal_game_log):
             await handle_game_team(ctx, participants_result, game_host, normal_game_log)
 
     view = GameView()
-    game_members_result = "\n".join([f"### {member.index}: <@{member.id}>" for member in view.members])
+    game_members_result = "\n".join([f"### {member.index}: <@{member.user.id}>" for member in view.members])
     await ctx.send(content=f'내전 모집이 완료되었습니다. 참여 명단을 확인하세요.\n\n{game_members_result}', view=view)
 
 
@@ -108,7 +106,7 @@ async def handle_game_team(ctx, participants, game_host, normal_game_log):
     class GameMember:
         def __init__(self, index):
             self.index = index + 1
-            self.name = participants[index]
+            self.name = participants[index].nickname
 
     class HandleTeamView(discord.ui.View):
         def __init__(self):

@@ -126,7 +126,8 @@ def get_result_sorted_by_tier(user_result: list):
     result = ''
     result += f'=========================================\n\n'
     for user in user_result:
-        splitted_user_profile = user.split('/')
+        nickname = user.nickname
+        splitted_user_profile = nickname.split('/')
         user_tier = splitted_user_profile[1].strip()
         if user_tier[0] == '🔻' or user_tier[0] == '🔺':
             user_tier = user_tier[1:]
@@ -136,7 +137,7 @@ def get_result_sorted_by_tier(user_result: list):
         elif now_tier != user_level:
             now_tier = user_level
             result += f'\n'
-        result += f'{user}\n'
+        result += f'{user.nickname}\n'
     result += f'\n=========================================\n'
 
     return result
